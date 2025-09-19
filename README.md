@@ -1,0 +1,2 @@
+# storex
+Storex Management Software
