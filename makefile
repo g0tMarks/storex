@@ -1,5 +1,5 @@
 # Database configuration
-DB_NAME ?= storex
+DB_NAME ?= test-db
 DB_TYPE ?= postgres
 DB_USER ?= postgres
 DB_PWD  ?= mysecretpassword
@@ -12,8 +12,8 @@ PSQLURL ?= $(DB_TYPE)://$(DB_USER):$(DB_PWD)@$(IP):5432/$(DB_NAME)
 SQLC_YAML ?= ./backend/sqlc.yaml
 
 # Container & volume
-CONTAINER_NAME = storex-postgres
-VOLUME_NAME    = storex-pgdata
+CONTAINER_NAME = test-db
+VOLUME_NAME    = test-pgdata
 
 .PHONY: postgresup postgresdown psql createdb teardown_recreate generate logs resetdb
 
@@ -35,7 +35,7 @@ psql:
 createdb:
 	docker exec -it $(CONTAINER_NAME) \
 		psql -U $(DB_USER) -d $(DB_NAME) \
-		-c "\i /usr/share/storex/db/schema.sql"
+		-c "\i /usr/share/storex/backend/schema/schema.sql"
 
 teardown_recreate: postgresdown postgresup
 	sleep 5
