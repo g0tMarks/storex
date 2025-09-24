@@ -7,29 +7,20 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createCustomer = `-- name: CreateCustomer :one
-INSERT INTO app.customers (name, contact_info, verification_status)
-VALUES ($1, $2, $3)
-RETURNING customer_id, name, contact_info, verification_status, created_at, is_enabled
+INSERT INTO app.customers (customer_name)
+VALUES ($1)
+RETURNING customer_id, customer_name, created_at, is_enabled
 `
 
-type CreateCustomerParams struct {
-	Name               string         `db:"name" json:"name"`
-	ContactInfo        sql.NullString `db:"contact_info" json:"contactInfo"`
-	VerificationStatus sql.NullString `db:"verification_status" json:"verificationStatus"`
-}
-
-func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (AppCustomer, error) {
-	row := q.db.QueryRowContext(ctx, createCustomer, arg.Name, arg.ContactInfo, arg.VerificationStatus)
+func (q *Queries) CreateCustomer(ctx context.Context, customerName string) (AppCustomer, error) {
+	row := q.db.QueryRowContext(ctx, createCustomer, customerName)
 	var i AppCustomer
 	err := row.Scan(
 		&i.CustomerID,
-		&i.Name,
-		&i.ContactInfo,
-		&i.VerificationStatus,
+		&i.CustomerName,
 		&i.CreatedAt,
 		&i.IsEnabled,
 	)
@@ -46,9 +37,7 @@ func (q *Queries) DeleteCustomer(ctx context.Context, customerID int64) error {
 }
 
 const getCustomer = `-- name: GetCustomer :one
-SELECT customer_id, name, contact_info, verification_status, created_at, is_enabled 
-FROM app.customers 
-WHERE customer_id = $1
+SELECT customer_id, customer_name, created_at, is_enabled FROM app.customers WHERE customer_id = $1
 `
 
 func (q *Queries) GetCustomer(ctx context.Context, customerID int64) (AppCustomer, error) {
@@ -56,94 +45,15 @@ func (q *Queries) GetCustomer(ctx context.Context, customerID int64) (AppCustome
 	var i AppCustomer
 	err := row.Scan(
 		&i.CustomerID,
-		&i.Name,
-		&i.ContactInfo,
-		&i.VerificationStatus,
+		&i.CustomerName,
 		&i.CreatedAt,
 		&i.IsEnabled,
 	)
 	return i, err
 }
 
-const getCustomerAgreements = `-- name: GetCustomerAgreements :many
-SELECT a.agreement_id, a.customer_id, a.unit_id, a.start_date, a.end_date, a.status
-FROM app.customers c
-JOIN app.agreements a ON c.customer_id = a.customer_id
-WHERE c.customer_id = $1
-ORDER BY a.start_date DESC
-`
-
-func (q *Queries) GetCustomerAgreements(ctx context.Context, customerID int64) ([]AppAgreement, error) {
-	rows, err := q.db.QueryContext(ctx, getCustomerAgreements, customerID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []AppAgreement
-	for rows.Next() {
-		var i AppAgreement
-		if err := rows.Scan(
-			&i.AgreementID,
-			&i.CustomerID,
-			&i.UnitID,
-			&i.StartDate,
-			&i.EndDate,
-			&i.Status,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getCustomerMessages = `-- name: GetCustomerMessages :many
-SELECT m.message_id, m.customer_id, m.type, m.direction, m.status
-FROM app.customers c
-JOIN app.messages m ON c.customer_id = m.customer_id
-WHERE c.customer_id = $1
-ORDER BY m.message_id DESC
-`
-
-func (q *Queries) GetCustomerMessages(ctx context.Context, customerID int64) ([]AppMessage, error) {
-	rows, err := q.db.QueryContext(ctx, getCustomerMessages, customerID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []AppMessage
-	for rows.Next() {
-		var i AppMessage
-		if err := rows.Scan(
-			&i.MessageID,
-			&i.CustomerID,
-			&i.Type,
-			&i.Direction,
-			&i.Status,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listCustomers = `-- name: ListCustomers :many
-SELECT customer_id, name, contact_info, verification_status, created_at, is_enabled 
-FROM app.customers 
-ORDER BY name
+SELECT customer_id, customer_name, created_at, is_enabled FROM app.customers ORDER BY customer_name
 `
 
 func (q *Queries) ListCustomers(ctx context.Context) ([]AppCustomer, error) {
@@ -157,9 +67,7 @@ func (q *Queries) ListCustomers(ctx context.Context) ([]AppCustomer, error) {
 		var i AppCustomer
 		if err := rows.Scan(
 			&i.CustomerID,
-			&i.Name,
-			&i.ContactInfo,
-			&i.VerificationStatus,
+			&i.CustomerName,
 			&i.CreatedAt,
 			&i.IsEnabled,
 		); err != nil {
@@ -178,33 +86,23 @@ func (q *Queries) ListCustomers(ctx context.Context) ([]AppCustomer, error) {
 
 const updateCustomer = `-- name: UpdateCustomer :one
 UPDATE app.customers
-SET name = $2, contact_info = $3, verification_status = $4, is_enabled = $5
+SET customer_name = $2, is_enabled = $3
 WHERE customer_id = $1
-RETURNING customer_id, name, contact_info, verification_status, created_at, is_enabled
+RETURNING customer_id, customer_name, created_at, is_enabled
 `
 
 type UpdateCustomerParams struct {
-	CustomerID         int64          `db:"customer_id" json:"customerId"`
-	Name               string         `db:"name" json:"name"`
-	ContactInfo        sql.NullString `db:"contact_info" json:"contactInfo"`
-	VerificationStatus sql.NullString `db:"verification_status" json:"verificationStatus"`
-	IsEnabled          bool           `db:"is_enabled" json:"isEnabled"`
+	CustomerID   int64  `db:"customer_id" json:"customerId"`
+	CustomerName string `db:"customer_name" json:"customerName"`
+	IsEnabled    bool   `db:"is_enabled" json:"isEnabled"`
 }
 
 func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (AppCustomer, error) {
-	row := q.db.QueryRowContext(ctx, updateCustomer,
-		arg.CustomerID,
-		arg.Name,
-		arg.ContactInfo,
-		arg.VerificationStatus,
-		arg.IsEnabled,
-	)
+	row := q.db.QueryRowContext(ctx, updateCustomer, arg.CustomerID, arg.CustomerName, arg.IsEnabled)
 	var i AppCustomer
 	err := row.Scan(
 		&i.CustomerID,
-		&i.Name,
-		&i.ContactInfo,
-		&i.VerificationStatus,
+		&i.CustomerName,
 		&i.CreatedAt,
 		&i.IsEnabled,
 	)

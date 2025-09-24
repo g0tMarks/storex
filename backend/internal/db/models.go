@@ -27,13 +27,53 @@ type AppAgreement struct {
 	Status      sql.NullString `db:"status" json:"status"`
 }
 
+type AppContact struct {
+	ContactID   int64          `db:"contact_id" json:"contactId"`
+	CustomerID  int64          `db:"customer_id" json:"customerId"`
+	FirstName   sql.NullString `db:"first_name" json:"firstName"`
+	LastName    sql.NullString `db:"last_name" json:"lastName"`
+	Email       sql.NullString `db:"email" json:"email"`
+	PhoneMobile sql.NullString `db:"phone_mobile" json:"phoneMobile"`
+	PhoneHome   sql.NullString `db:"phone_home" json:"phoneHome"`
+	PhoneWork   sql.NullString `db:"phone_work" json:"phoneWork"`
+	Role        sql.NullString `db:"role" json:"role"`
+	IsPrimary   sql.NullBool   `db:"is_primary" json:"isPrimary"`
+}
+
 type AppCustomer struct {
-	CustomerID         int64          `db:"customer_id" json:"customerId"`
-	Name               string         `db:"name" json:"name"`
-	ContactInfo        sql.NullString `db:"contact_info" json:"contactInfo"`
-	VerificationStatus sql.NullString `db:"verification_status" json:"verificationStatus"`
-	CreatedAt          time.Time      `db:"created_at" json:"createdAt"`
-	IsEnabled          bool           `db:"is_enabled" json:"isEnabled"`
+	CustomerID   int64     `db:"customer_id" json:"customerId"`
+	CustomerName string    `db:"customer_name" json:"customerName"`
+	CreatedAt    time.Time `db:"created_at" json:"createdAt"`
+	IsEnabled    bool      `db:"is_enabled" json:"isEnabled"`
+}
+
+type AppCustomerAccess struct {
+	AccessID      int64          `db:"access_id" json:"accessId"`
+	CustomerID    int64          `db:"customer_id" json:"customerId"`
+	Pin           sql.NullString `db:"pin" json:"pin"`
+	AlwaysAllowed sql.NullBool   `db:"always_allowed" json:"alwaysAllowed"`
+	TimeZone      sql.NullString `db:"time_zone" json:"timeZone"`
+}
+
+type AppCustomerAddress struct {
+	AddressID  int64          `db:"address_id" json:"addressId"`
+	CustomerID int64          `db:"customer_id" json:"customerId"`
+	Type       string         `db:"type" json:"type"`
+	Line1      sql.NullString `db:"line1" json:"line1"`
+	Suburb     sql.NullString `db:"suburb" json:"suburb"`
+	City       sql.NullString `db:"city" json:"city"`
+	State      sql.NullString `db:"state" json:"state"`
+	Postcode   sql.NullString `db:"postcode" json:"postcode"`
+	Country    sql.NullString `db:"country" json:"country"`
+	Latitude   sql.NullString `db:"latitude" json:"latitude"`
+	Longitude  sql.NullString `db:"longitude" json:"longitude"`
+}
+
+type AppCustomerCustomField struct {
+	FieldID    int64          `db:"field_id" json:"fieldId"`
+	CustomerID int64          `db:"customer_id" json:"customerId"`
+	FieldName  string         `db:"field_name" json:"fieldName"`
+	FieldValue sql.NullString `db:"field_value" json:"fieldValue"`
 }
 
 type AppFacility struct {

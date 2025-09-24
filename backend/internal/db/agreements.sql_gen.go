@@ -99,7 +99,7 @@ func (q *Queries) GetAgreementByID(ctx context.Context, agreementID int64) (AppA
 }
 
 const getAgreementCustomer = `-- name: GetAgreementCustomer :one
-SELECT c.customer_id, c.name, c.contact_info, c.verification_status, c.created_at, c.is_enabled
+SELECT c.customer_id, c.customer_name, c.created_at, c.is_enabled
 FROM app.agreements a
 JOIN app.customers c ON a.customer_id = c.customer_id
 WHERE a.agreement_id = $1
@@ -110,9 +110,7 @@ func (q *Queries) GetAgreementCustomer(ctx context.Context, agreementID int64) (
 	var i AppCustomer
 	err := row.Scan(
 		&i.CustomerID,
-		&i.Name,
-		&i.ContactInfo,
-		&i.VerificationStatus,
+		&i.CustomerName,
 		&i.CreatedAt,
 		&i.IsEnabled,
 	)

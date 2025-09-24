@@ -35,7 +35,7 @@ psql:
 createdb:
 	docker exec -it $(CONTAINER_NAME) \
 		psql -U $(DB_USER) -d $(DB_NAME) \
-		-c "\i /usr/share/storex/backend/schema/schema.sql"
+		-f /usr/share/storex/backend/schema/schema.sql
 
 teardown_recreate: postgresdown postgresup
 	sleep 5

@@ -1,7 +1,7 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    schema: "./schema"       # directory holding schema.sql
+    schema: "./schema/schema.sql"       # directory holding schema.sql
     queries: "./queries"       # directory for .sql queries
     gen:
       go:
