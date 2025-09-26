@@ -48,6 +48,9 @@ generate:
 logs:
 	docker logs -f $(CONTAINER_NAME)
 
+start:
+	docker start $(CONTAINER_NAME)
+
 resetdb: postgresdown
 	docker volume rm $(VOLUME_NAME) || true
 	$(MAKE) postgresup
