@@ -1,160 +1,249 @@
--- ============================================
+
+-- =====================================================
 -- Core Schema
--- ============================================
+-- =====================================================
 
 CREATE SCHEMA IF NOT EXISTS app;
 
--- Represents the customer account / entity (business or individual)
+-- ENUMs
+DO $$ BEGIN
+    CREATE TYPE app.unit_status AS ENUM ('available', 'reserved', 'occupied', 'maintenance');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TABLE app.customers (
-    customer_id bigserial PRIMARY KEY,
-    customer_name text NOT NULL,
-    created_at timestamp NOT NULL DEFAULT now(),
-    is_enabled boolean NOT NULL DEFAULT true
+DO $$ BEGIN
+    CREATE TYPE app.agreement_status AS ENUM ('active', 'terminated', 'expired', 'pending');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE app.invoice_status AS ENUM ('unpaid', 'paid', 'overdue', 'cancelled');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE app.payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- Customers
+CREATE TABLE IF NOT EXISTS app.customers (
+
+    customer_id BIGSERIAL PRIMARY KEY,
+
+    customer_name TEXT NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+
+    is_enabled BOOLEAN NOT NULL DEFAULT true
 );
 
--- Represents individual people linked to a customer
+-- Contacts
+CREATE TABLE IF NOT EXISTS app.contacts (
 
-CREATE TABLE app.contacts (
-    contact_id bigserial PRIMARY KEY,
-    customer_id bigint NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
-    first_name text,
-    last_name text,
-    email text,
-    phone_mobile text,
-    phone_home text,
-    phone_work text,
-    role text, -- e.g. primary, billing, emergency
-    is_primary boolean DEFAULT false
+    contact_id BIGSERIAL PRIMARY KEY,
+
+    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+
+    first_name TEXT,
+
+    last_name TEXT,
+
+    email TEXT UNIQUE,
+
+    phone_mobile TEXT,
+
+    phone_home TEXT,
+
+    phone_work TEXT,
+
+    role TEXT,
+
+    is_primary BOOLEAN DEFAULT falseunit_id
 );
+CREATE INDEX IF NOT EXISTS idx_contacts_customer_id ON app.contacts(customer_id);
 
-CREATE INDEX idx_contacts_customer_id ON app.contacts(customer_id);
+-- Customer addresses
+CREATE TABLE IF NOT EXISTS app.customer_addresses (
 
--- Allows multiple addresses per customer (billing, street, etc.)
+    address_id BIGSERIAL PRIMARY KEY,
 
-CREATE TABLE app.customer_addresses (
-    address_id bigserial PRIMARY KEY,
-    customer_id bigint NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
-    type text NOT NULL, -- billing, street
-    line1 text,
-    suburb text,
-    city text,
-    state text,
-    postcode text,
-    country text,
-    latitude numeric,
-    longitude numeric
+    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+
+    type TEXT NOT NULL,
+
+    line1 TEXT,unit_id
+
+    suburb TEXT,
+
+    city TEXT,
+
+    state TEXT,
+    
+    postcode TEXT,
+
+    country TEXT,
+
+    latitude NUMERIC,
+
+    longitude NUMERIC
 );
+CREATE INDEX IF NOT EXISTS idx_addresses_customer_id ON app.customer_addresses(customer_id);
 
-CREATE INDEX idx_addresses_customer_id ON app.customer_addresses(customer_id);
+-- Customer access (PINs, timezones)
+CREATE TABLE IF NOT EXISTS app.customer_access (
 
--- Access control info for gates/doors
+    access_id BIGSERIAL PRIMARY KEY,
 
-CREATE TABLE app.customer_access (
-    access_id bigserial PRIMARY KEY,
-    customer_id bigint NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
-    pin text,
-    always_allowed boolean DEFAULT false,
-    time_zone text
+    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+
+    pin TEXT,
+
+    always_allowed BOOLEAN DEFAULT false,
+
+    time_zone TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_access_customer_id ON app.customer_access(customer_id);
 
-CREATE INDEX idx_access_customer_id ON app.customer_access(customer_id);
+-- Custom fields (flexible key/value)
+CREATE TABLE IF NOT EXISTS app.customer_custom_fields (
 
--- Flexible attributes to extend customer info
+    field_id BIGSERIAL PRIMARY KEY,
 
-CREATE TABLE app.customer_custom_fields (
-    field_id bigserial PRIMARY KEY,
-    customer_id bigint NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
-    field_name text NOT NULL,
-    field_value text
+    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+
+    field_name TEXT NOT NULL,
+
+    field_value TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_custom_fields_customer_id ON app.customer_custom_fields(customer_id);
 
-CREATE INDEX idx_customfields_customer_id ON app.customer_custom_fields(customer_id);
-
--- ============================================
+-- =====================================================
 -- Operational Tables
--- ============================================
+-- =====================================================
 
 -- Facilities
-CREATE TABLE app.facilities (
-    facility_id bigserial PRIMARY KEY,
-    name text NOT NULL,
-    address text,
-    region text,
-    config jsonb NOT NULL DEFAULT '{}'::jsonb
+CREATE TABLE IF NOT EXISTS app.facilities (
+
+    facility_id BIGSERIAL PRIMARY KEY,
+
+    name TEXT NOT NULL,
+
+    address TEXT,
+
+    region TEXT,
+
+    config JSONB NOT NULL
 );
 
 -- Units
-CREATE TABLE app.units (
-    unit_id bigserial PRIMARY KEY,
-    facility_id bigint NOT NULL REFERENCES app.facilities(facility_id) ON DELETE CASCADE,
-    unit_type text,
-    size text,
-    price numeric(10,2),
-    status text
-);
+CREATE TABLE IF NOT EXISTS app.units (
 
-CREATE INDEX idx_units_facility_id ON app.units(facility_id);
+    unit_id BIGSERIAL PRIMARY KEY,
+
+    facility_id BIGINT NOT NULL REFERENCES app.facilities(facility_id) ON DELETE CASCADE,
+
+    unit_type TEXT,
+
+    size TEXT,
+
+    price NUMERIC(10,2),
+
+    status app.unit_status DEFAULT 'available'
+);
+CREATE INDEX IF NOT EXISTS idx_units_facility_id ON app.units(facility_id);
 
 -- Agreements
-CREATE TABLE app.agreements (
-    agreement_id bigserial PRIMARY KEY,
-    customer_id bigint NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
-    unit_id bigint NOT NULL REFERENCES app.units(unit_id) ON DELETE CASCADE,
-    start_date date NOT NULL,
-    end_date date,
-    status text
+CREATE TABLE IF NOT EXISTS app.agreements (
+
+    agreement_id BIGSERIAL PRIMARY KEY,
+
+    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+
+    unit_id BIGINT NOT NULL REFERENCES app.units(unit_id) ON DELETE CASCADE,
+
+    start_date DATE NOT NULL,
+
+    end_date DATE,
+
+    status app.agreement_status DEFAULT 'active'
 );
 
 -- Ensure only one active agreement per unit
-CREATE UNIQUE INDEX uq_active_agreement_per_unit
+CREATE UNIQUE INDEX IF NOT EXISTS uq_active_agreement_per_unit
     ON app.agreements(unit_id)
     WHERE status = 'active';
 
-CREATE INDEX idx_agreements_customer_id ON app.agreements(customer_id);
-CREATE INDEX idx_agreements_unit_id ON app.agreements(unit_id);
+CREATE INDEX IF NOT EXISTS idx_agreements_customer_id ON app.agreements(customer_id);
+CREATE INDEX IF NOT EXISTS idx_agreements_unit_id ON app.agreements(unit_id);
 
 -- Invoices
-CREATE TABLE app.invoices (
-    invoice_id bigserial PRIMARY KEY,
-    agreement_id bigint NOT NULL REFERENCES app.agreements(agreement_id) ON DELETE CASCADE,
-    due_date date NOT NULL,
-    amount numeric(10,2) NOT NULL,
-    status text
-);
+CREATE TABLE IF NOT EXISTS app.invoices (
 
-CREATE INDEX idx_invoices_agreement_id ON app.invoices(agreement_id);
+    invoice_id BIGSERIAL PRIMARY KEY,
+
+    agreement_id BIGINT NOT NULL REFERENCES app.agreements(agreement_id) ON DELETE CASCADE,
+
+    due_date DATE NOT NULL,
+
+    amount NUMERIC(10,2) NOT NULL,
+
+    status app.invoice_status DEFAULT 'unpaid'
+);
+CREATE INDEX IF NOT EXISTS idx_invoices_agreement_id ON app.invoices(agreement_id);
 
 -- Payments
-CREATE TABLE app.payments (
-    payment_id bigserial PRIMARY KEY,
-    invoice_id bigint NOT NULL REFERENCES app.invoices(invoice_id) ON DELETE CASCADE,
-    method text,
-    gateway_ref text,
-    status text
+CREATE TABLE IF NOT EXISTS app.payments (
+
+    payment_id BIGSERIAL PRIMARY KEY,
+
+    invoice_id BIGINT NOT NULL REFERENCES app.invoices(invoice_id) ON DELETE CASCADE,
+
+    method TEXT,
+
+    gateway_ref TEXT,
+
+    status app.payment_status DEFAULT 'pending'
 );
+CREATE INDEX IF NOT EXISTS idx_payments_invoice_id ON app.payments(invoice_id);
 
-CREATE INDEX idx_payments_invoice_id ON app.payments(invoice_id);
 
--- Access Logs
-CREATE TABLE app.access_logs (
-    log_id bigserial PRIMARY KEY,
-    customer_id bigint NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
-    unit_id bigint NOT NULL REFERENCES app.units(unit_id) ON DELETE CASCADE,
-    datetime timestamp NOT NULL DEFAULT now(),
-    action text
+-- Access logs (partitioning candidate)
+CREATE TABLE IF NOT EXISTS app.access_logs (
+
+    log_id BIGSERIAL PRIMARY KEY,
+
+    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE SET NULL,
+
+    unit_id BIGINT NOT NULL REFERENCES app.units(unit_id) ON DELETE SET NULL,
+
+    datetime TIMESTAMP NOT NULL DEFAULT now(),
+
+    action TEXT
 );
-
-CREATE INDEX idx_accesslogs_customer_id ON app.access_logs(customer_id);
-CREATE INDEX idx_accesslogs_unit_id ON app.access_logs(unit_id);
+CREATE INDEX IF NOT EXISTS idx_access_logs_customer_id ON app.access_logs(customer_id);
+CREATE INDEX IF NOT EXISTS idx_access_logs_datetime ON app.access_logs(datetime);
+CREATE INDEX IF NOT EXISTS idx_access_logs_unit_id ON app.access_logs(unit_id);
 
 -- Messages
-CREATE TABLE app.messages (
-    message_id bigserial PRIMARY KEY,
-    customer_id bigint NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
-    type text,  -- SMS, Email
-    direction text,  -- inbound, outbound
-    status text
-);
+DO $$ BEGIN
+    CREATE TYPE app.message_type AS ENUM ('sms', 'email', 'system');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE INDEX idx_messages_customer_id ON app.messages(customer_id);
+DO $$ BEGIN
+    CREATE TYPE app.message_direction AS ENUM ('inbound', 'outbound');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE app.message_status AS ENUM ('queued', 'sent', 'delivered', 'failed');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+CREATE TABLE IF NOT EXISTS app.messages (
+
+    message_id BIGSERIAL PRIMARY KEY,
+
+    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+
+    type app.message_type,
+
+    direction app.message_direction,
+
+    status app.message_status DEFAULT 'queued'
+);
+CREATE INDEX IF NOT EXISTS idx_messages_customer_id ON app.messages(customer_id);
