@@ -68,14 +68,14 @@ CREATE TABLE IF NOT EXISTS app.customer_addresses (
 
     type TEXT NOT NULL,
 
-    line1 TEXT,unit_id
+    line1 TEXT,
 
     suburb TEXT,
 
     city TEXT,
 
     state TEXT,
-    
+
     postcode TEXT,
 
     country TEXT,

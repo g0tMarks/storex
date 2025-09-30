@@ -20,7 +20,7 @@ type CreatePaymentParams struct {
 	InvoiceID  int64          `db:"invoice_id" json:"invoiceId"`
 	Method     sql.NullString `db:"method" json:"method"`
 	GatewayRef sql.NullString `db:"gateway_ref" json:"gatewayRef"`
-	Status     sql.NullString `db:"status" json:"status"`
+	Status     interface{}    `db:"status" json:"status"`
 }
 
 func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (AppPayment, error) {
@@ -112,7 +112,7 @@ type UpdatePaymentParams struct {
 	InvoiceID  int64          `db:"invoice_id" json:"invoiceId"`
 	Method     sql.NullString `db:"method" json:"method"`
 	GatewayRef sql.NullString `db:"gateway_ref" json:"gatewayRef"`
-	Status     sql.NullString `db:"status" json:"status"`
+	Status     interface{}    `db:"status" json:"status"`
 }
 
 func (q *Queries) UpdatePayment(ctx context.Context, arg UpdatePaymentParams) (AppPayment, error) {

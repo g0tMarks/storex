@@ -21,7 +21,7 @@ type CreateUnitParams struct {
 	UnitType   sql.NullString `db:"unit_type" json:"unitType"`
 	Size       sql.NullString `db:"size" json:"size"`
 	Price      sql.NullString `db:"price" json:"price"`
-	Status     sql.NullString `db:"status" json:"status"`
+	Status     interface{}    `db:"status" json:"status"`
 }
 
 func (q *Queries) CreateUnit(ctx context.Context, arg CreateUnitParams) (AppUnit, error) {
@@ -159,7 +159,7 @@ type UpdateUnitParams struct {
 	UnitType   sql.NullString `db:"unit_type" json:"unitType"`
 	Size       sql.NullString `db:"size" json:"size"`
 	Price      sql.NullString `db:"price" json:"price"`
-	Status     sql.NullString `db:"status" json:"status"`
+	Status     interface{}    `db:"status" json:"status"`
 }
 
 func (q *Queries) UpdateUnit(ctx context.Context, arg UpdateUnitParams) (AppUnit, error) {

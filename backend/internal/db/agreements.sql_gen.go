@@ -25,11 +25,11 @@ RETURNING agreement_id, customer_id, unit_id, start_date, end_date, status
 `
 
 type CreateAgreementParams struct {
-	CustomerID int64          `db:"customer_id" json:"customerId"`
-	UnitID     int64          `db:"unit_id" json:"unitId"`
-	StartDate  time.Time      `db:"start_date" json:"startDate"`
-	EndDate    sql.NullTime   `db:"end_date" json:"endDate"`
-	Status     sql.NullString `db:"status" json:"status"`
+	CustomerID int64        `db:"customer_id" json:"customerId"`
+	UnitID     int64        `db:"unit_id" json:"unitId"`
+	StartDate  time.Time    `db:"start_date" json:"startDate"`
+	EndDate    sql.NullTime `db:"end_date" json:"endDate"`
+	Status     interface{}  `db:"status" json:"status"`
 }
 
 func (q *Queries) CreateAgreement(ctx context.Context, arg CreateAgreementParams) (AppAgreement, error) {
@@ -253,8 +253,8 @@ RETURNING agreement_id, customer_id, unit_id, start_date, end_date, status
 `
 
 type UpdateAgreementStatusParams struct {
-	AgreementID int64          `db:"agreement_id" json:"agreementId"`
-	Status      sql.NullString `db:"status" json:"status"`
+	AgreementID int64       `db:"agreement_id" json:"agreementId"`
+	Status      interface{} `db:"status" json:"status"`
 }
 
 func (q *Queries) UpdateAgreementStatus(ctx context.Context, arg UpdateAgreementStatusParams) (AppAgreement, error) {

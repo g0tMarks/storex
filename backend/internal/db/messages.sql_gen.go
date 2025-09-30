@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createMessage = `-- name: CreateMessage :one
@@ -17,10 +16,10 @@ RETURNING message_id, customer_id, type, direction, status
 `
 
 type CreateMessageParams struct {
-	CustomerID int64          `db:"customer_id" json:"customerId"`
-	Type       sql.NullString `db:"type" json:"type"`
-	Direction  sql.NullString `db:"direction" json:"direction"`
-	Status     sql.NullString `db:"status" json:"status"`
+	CustomerID int64       `db:"customer_id" json:"customerId"`
+	Type       interface{} `db:"type" json:"type"`
+	Direction  interface{} `db:"direction" json:"direction"`
+	Status     interface{} `db:"status" json:"status"`
 }
 
 func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (AppMessage, error) {
@@ -124,10 +123,10 @@ RETURNING message_id, customer_id, type, direction, status
 `
 
 type UpdateMessageParams struct {
-	MessageID int64          `db:"message_id" json:"messageId"`
-	Type      sql.NullString `db:"type" json:"type"`
-	Direction sql.NullString `db:"direction" json:"direction"`
-	Status    sql.NullString `db:"status" json:"status"`
+	MessageID int64       `db:"message_id" json:"messageId"`
+	Type      interface{} `db:"type" json:"type"`
+	Direction interface{} `db:"direction" json:"direction"`
+	Status    interface{} `db:"status" json:"status"`
 }
 
 func (q *Queries) UpdateMessage(ctx context.Context, arg UpdateMessageParams) (AppMessage, error) {
