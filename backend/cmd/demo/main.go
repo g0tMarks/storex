@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
-	"github.com/g0tMarks/storex.git/backend/internal/db" // update if your module name isn’t `storex`
+	"github.com/g0tMarks/storex.git/backend/internal/db"
 	_ "github.com/lib/pq"
 )
 
@@ -22,7 +23,6 @@ func main() {
 	conn, err := sql.Open("postgres", dbURI)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
-		fmt.Printf("cannot connect to DB successfully: %s\n", dbURI)
 	}
 	defer conn.Close()
 
@@ -30,76 +30,53 @@ func main() {
 		log.Fatal("db ping failed:", err)
 	}
 
-	fmt.Printf("Connected to DB successfully: %s\n", dbURI)
+	fmt.Println("✅ Connected to DB")
 
 	queries := db.New(conn)
 	ctx := context.Background()
 
-	// 1️⃣ Create a customer
-	newCustomer, err := queries.CreateCustomer(ctx, "Acme Storage Test")
+	// Create a customer
+	customer, err := queries.CreateCustomer(ctx, "Acme Storage Test")
 	if err != nil {
 		log.Fatal("failed to create customer:", err)
 	}
-	fmt.Printf("✅ Created customer ID=%d, Name=%s\n",
-		newCustomer.CustomerID, newCustomer.CustomerName)
+	fmt.Printf("✅ Customer: %d %s\n", customer.CustomerID, customer.CustomerName)
 
-	// 2️⃣ Add a contact for the customer
-
-	newContact, err := queries.CreateContact(ctx, db.CreateContactParams{
-		CustomerID:  newCustomer.CustomerID,
-		FirstName:   sql.NullString{String: "Alice", Valid: true},
-		LastName:    sql.NullString{String: "Example", Valid: true},
-		Email:       sql.NullString{String: "alice@example.com", Valid: true},
-		PhoneMobile: sql.NullString{String: "0400-111-222", Valid: true},
-		Role:        sql.NullString{String: "primary", Valid: true},
-		IsPrimary:   sql.NullBool{Bool: true, Valid: true},
+	// 2️⃣ Create a facility
+	facility, err := queries.CreateFacility(ctx, db.CreateFacilityParams{
+		Name:    "Main Facility",
+		Address: sql.NullString{String: "456 Warehouse Rd", Valid: true},
+		Region:  sql.NullString{String: "VIC", Valid: true},
+		Config:  []byte(`{"allow24hr": true}`), // JSONB field
 	})
-
 	if err != nil {
-		log.Fatalf("failed to create contact: %v", err)
+		log.Fatal("failed to create facility:", err)
 	}
+	fmt.Printf("✅ Facility: %d %s\n", facility.FacilityID, facility.Name)
 
-	fmt.Printf("✅ Created contact ID=%d for customer %d\n",
-
-		newContact.ContactID, newContact.CustomerID)
-
-	// 3️⃣ Add a billing address
-
-	newAddress, err := queries.CreateAddress(ctx, db.CreateAddressParams{
-		CustomerID: newCustomer.CustomerID,
-		Type:       "billing",
-		Line1:      sql.NullString{String: "123 Storage St", Valid: true},
-		City:       sql.NullString{String: "Melbourne", Valid: true},
-		State:      sql.NullString{String: "VIC", Valid: true},
-		Postcode:   sql.NullString{String: "3000", Valid: true},
-		Country:    sql.NullString{String: "Australia", Valid: true},
+	// 3️⃣ Create a unit
+	unit, err := queries.CreateUnit(ctx, db.CreateUnitParams{
+		FacilityID: facility.FacilityID,
+		UnitType:   sql.NullString{String: "Small Locker", Valid: true},
+		Size:       sql.NullString{String: "2x2", Valid: true},
+		Price:      sql.NullString{String: "120.0", Valid: true},
+		Column5:    db.AppUnitStatusAvailable, // enum
 	})
-
 	if err != nil {
-		log.Fatal("failed to create address:", err)
+		log.Fatal("failed to create unit:", err)
 	}
+	fmt.Printf("✅ Unit: %d status=%s\n", unit.UnitID, unit.Status.AppUnitStatus)
 
-	fmt.Printf("✅ Created %s address ID=%d for customer %d\n",
-
-		newAddress.Type, newAddress.AddressID, newCustomer.CustomerID)
-
-	// 4️⃣ Add access PIN
-
-	newAccess, err := queries.CreateAccess(ctx, db.CreateAccessParams{
-		CustomerID:    newCustomer.CustomerID,
-		Pin:           sql.NullString{String: "1234", Valid: true},
-		AlwaysAllowed: sql.NullBool{Bool: false, Valid: true},
-		TimeZone:      sql.NullString{String: "Australia/Melbourne", Valid: true},
+	// 4️⃣ Create an agreement
+	agreement, err := queries.CreateAgreement(ctx, db.CreateAgreementParams{
+		CustomerID: customer.CustomerID,
+		UnitID:     unit.UnitID,
+		StartDate:  time.Now(),
+		EndDate:    sql.NullTime{Time: time.Now().AddDate(0, 1, 0), Valid: true},
+		Column5:    db.AppAgreementStatusActive, // enum
 	})
-
 	if err != nil {
-		log.Fatal("failed to create access record:", err)
+		log.Fatal("failed to create agreement:", err)
 	}
-
-	fmt.Printf("✅ Created access record ID=%d with PIN=%s\n",
-
-		newAccess.AccessID, newAccess.Pin.String)
-
-	// Done
-	fmt.Println("🎉 Demo insert flow completed successfully.")
+	fmt.Printf("✅ Agreement: %d status=%s\n", agreement.AgreementID, agreement.Status.AppAgreementStatus)
 }
