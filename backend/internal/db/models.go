@@ -6,9 +6,316 @@ package db
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"time"
 )
+
+type AppAgreementStatus string
+
+const (
+	AppAgreementStatusActive     AppAgreementStatus = "active"
+	AppAgreementStatusTerminated AppAgreementStatus = "terminated"
+	AppAgreementStatusExpired    AppAgreementStatus = "expired"
+	AppAgreementStatusPending    AppAgreementStatus = "pending"
+)
+
+func (e *AppAgreementStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AppAgreementStatus(s)
+	case string:
+		*e = AppAgreementStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AppAgreementStatus: %T", src)
+	}
+	return nil
+}
+
+type NullAppAgreementStatus struct {
+	AppAgreementStatus AppAgreementStatus `json:"appAgreementStatus"`
+	Valid              bool               `json:"valid"` // Valid is true if AppAgreementStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAppAgreementStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.AppAgreementStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AppAgreementStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAppAgreementStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AppAgreementStatus), nil
+}
+
+type AppInvoiceStatus string
+
+const (
+	AppInvoiceStatusUnpaid    AppInvoiceStatus = "unpaid"
+	AppInvoiceStatusPaid      AppInvoiceStatus = "paid"
+	AppInvoiceStatusOverdue   AppInvoiceStatus = "overdue"
+	AppInvoiceStatusCancelled AppInvoiceStatus = "cancelled"
+)
+
+func (e *AppInvoiceStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AppInvoiceStatus(s)
+	case string:
+		*e = AppInvoiceStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AppInvoiceStatus: %T", src)
+	}
+	return nil
+}
+
+type NullAppInvoiceStatus struct {
+	AppInvoiceStatus AppInvoiceStatus `json:"appInvoiceStatus"`
+	Valid            bool             `json:"valid"` // Valid is true if AppInvoiceStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAppInvoiceStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.AppInvoiceStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AppInvoiceStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAppInvoiceStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AppInvoiceStatus), nil
+}
+
+type AppMessageDirection string
+
+const (
+	AppMessageDirectionInbound  AppMessageDirection = "inbound"
+	AppMessageDirectionOutbound AppMessageDirection = "outbound"
+)
+
+func (e *AppMessageDirection) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AppMessageDirection(s)
+	case string:
+		*e = AppMessageDirection(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AppMessageDirection: %T", src)
+	}
+	return nil
+}
+
+type NullAppMessageDirection struct {
+	AppMessageDirection AppMessageDirection `json:"appMessageDirection"`
+	Valid               bool                `json:"valid"` // Valid is true if AppMessageDirection is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAppMessageDirection) Scan(value interface{}) error {
+	if value == nil {
+		ns.AppMessageDirection, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AppMessageDirection.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAppMessageDirection) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AppMessageDirection), nil
+}
+
+type AppMessageStatus string
+
+const (
+	AppMessageStatusQueued    AppMessageStatus = "queued"
+	AppMessageStatusSent      AppMessageStatus = "sent"
+	AppMessageStatusDelivered AppMessageStatus = "delivered"
+	AppMessageStatusFailed    AppMessageStatus = "failed"
+)
+
+func (e *AppMessageStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AppMessageStatus(s)
+	case string:
+		*e = AppMessageStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AppMessageStatus: %T", src)
+	}
+	return nil
+}
+
+type NullAppMessageStatus struct {
+	AppMessageStatus AppMessageStatus `json:"appMessageStatus"`
+	Valid            bool             `json:"valid"` // Valid is true if AppMessageStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAppMessageStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.AppMessageStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AppMessageStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAppMessageStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AppMessageStatus), nil
+}
+
+type AppMessageType string
+
+const (
+	AppMessageTypeSms    AppMessageType = "sms"
+	AppMessageTypeEmail  AppMessageType = "email"
+	AppMessageTypeSystem AppMessageType = "system"
+)
+
+func (e *AppMessageType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AppMessageType(s)
+	case string:
+		*e = AppMessageType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AppMessageType: %T", src)
+	}
+	return nil
+}
+
+type NullAppMessageType struct {
+	AppMessageType AppMessageType `json:"appMessageType"`
+	Valid          bool           `json:"valid"` // Valid is true if AppMessageType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAppMessageType) Scan(value interface{}) error {
+	if value == nil {
+		ns.AppMessageType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AppMessageType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAppMessageType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AppMessageType), nil
+}
+
+type AppPaymentStatus string
+
+const (
+	AppPaymentStatusPending   AppPaymentStatus = "pending"
+	AppPaymentStatusCompleted AppPaymentStatus = "completed"
+	AppPaymentStatusFailed    AppPaymentStatus = "failed"
+	AppPaymentStatusRefunded  AppPaymentStatus = "refunded"
+)
+
+func (e *AppPaymentStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AppPaymentStatus(s)
+	case string:
+		*e = AppPaymentStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AppPaymentStatus: %T", src)
+	}
+	return nil
+}
+
+type NullAppPaymentStatus struct {
+	AppPaymentStatus AppPaymentStatus `json:"appPaymentStatus"`
+	Valid            bool             `json:"valid"` // Valid is true if AppPaymentStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAppPaymentStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.AppPaymentStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AppPaymentStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAppPaymentStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AppPaymentStatus), nil
+}
+
+type AppUnitStatus string
+
+const (
+	AppUnitStatusAvailable   AppUnitStatus = "available"
+	AppUnitStatusReserved    AppUnitStatus = "reserved"
+	AppUnitStatusOccupied    AppUnitStatus = "occupied"
+	AppUnitStatusMaintenance AppUnitStatus = "maintenance"
+)
+
+func (e *AppUnitStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AppUnitStatus(s)
+	case string:
+		*e = AppUnitStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AppUnitStatus: %T", src)
+	}
+	return nil
+}
+
+type NullAppUnitStatus struct {
+	AppUnitStatus AppUnitStatus `json:"appUnitStatus"`
+	Valid         bool          `json:"valid"` // Valid is true if AppUnitStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAppUnitStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.AppUnitStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AppUnitStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAppUnitStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AppUnitStatus), nil
+}
 
 type AppAccessLog struct {
 	LogID      int64          `db:"log_id" json:"logId"`
@@ -19,12 +326,12 @@ type AppAccessLog struct {
 }
 
 type AppAgreement struct {
-	AgreementID int64        `db:"agreement_id" json:"agreementId"`
-	CustomerID  int64        `db:"customer_id" json:"customerId"`
-	UnitID      int64        `db:"unit_id" json:"unitId"`
-	StartDate   time.Time    `db:"start_date" json:"startDate"`
-	EndDate     sql.NullTime `db:"end_date" json:"endDate"`
-	Status      interface{}  `db:"status" json:"status"`
+	AgreementID int64                  `db:"agreement_id" json:"agreementId"`
+	CustomerID  int64                  `db:"customer_id" json:"customerId"`
+	UnitID      int64                  `db:"unit_id" json:"unitId"`
+	StartDate   time.Time              `db:"start_date" json:"startDate"`
+	EndDate     sql.NullTime           `db:"end_date" json:"endDate"`
+	Status      NullAppAgreementStatus `db:"status" json:"status"`
 }
 
 type AppContact struct {
@@ -85,34 +392,34 @@ type AppFacility struct {
 }
 
 type AppInvoice struct {
-	InvoiceID   int64       `db:"invoice_id" json:"invoiceId"`
-	AgreementID int64       `db:"agreement_id" json:"agreementId"`
-	DueDate     time.Time   `db:"due_date" json:"dueDate"`
-	Amount      string      `db:"amount" json:"amount"`
-	Status      interface{} `db:"status" json:"status"`
+	InvoiceID   int64                `db:"invoice_id" json:"invoiceId"`
+	AgreementID int64                `db:"agreement_id" json:"agreementId"`
+	DueDate     time.Time            `db:"due_date" json:"dueDate"`
+	Amount      string               `db:"amount" json:"amount"`
+	Status      NullAppInvoiceStatus `db:"status" json:"status"`
 }
 
 type AppMessage struct {
-	MessageID  int64       `db:"message_id" json:"messageId"`
-	CustomerID int64       `db:"customer_id" json:"customerId"`
-	Type       interface{} `db:"type" json:"type"`
-	Direction  interface{} `db:"direction" json:"direction"`
-	Status     interface{} `db:"status" json:"status"`
+	MessageID  int64                   `db:"message_id" json:"messageId"`
+	CustomerID int64                   `db:"customer_id" json:"customerId"`
+	Type       NullAppMessageType      `db:"type" json:"type"`
+	Direction  NullAppMessageDirection `db:"direction" json:"direction"`
+	Status     NullAppMessageStatus    `db:"status" json:"status"`
 }
 
 type AppPayment struct {
-	PaymentID  int64          `db:"payment_id" json:"paymentId"`
-	InvoiceID  int64          `db:"invoice_id" json:"invoiceId"`
-	Method     sql.NullString `db:"method" json:"method"`
-	GatewayRef sql.NullString `db:"gateway_ref" json:"gatewayRef"`
-	Status     interface{}    `db:"status" json:"status"`
+	PaymentID  int64                `db:"payment_id" json:"paymentId"`
+	InvoiceID  int64                `db:"invoice_id" json:"invoiceId"`
+	Method     sql.NullString       `db:"method" json:"method"`
+	GatewayRef sql.NullString       `db:"gateway_ref" json:"gatewayRef"`
+	Status     NullAppPaymentStatus `db:"status" json:"status"`
 }
 
 type AppUnit struct {
-	UnitID     int64          `db:"unit_id" json:"unitId"`
-	FacilityID int64          `db:"facility_id" json:"facilityId"`
-	UnitType   sql.NullString `db:"unit_type" json:"unitType"`
-	Size       sql.NullString `db:"size" json:"size"`
-	Price      sql.NullString `db:"price" json:"price"`
-	Status     interface{}    `db:"status" json:"status"`
+	UnitID     int64             `db:"unit_id" json:"unitId"`
+	FacilityID int64             `db:"facility_id" json:"facilityId"`
+	UnitType   sql.NullString    `db:"unit_type" json:"unitType"`
+	Size       sql.NullString    `db:"size" json:"size"`
+	Price      sql.NullString    `db:"price" json:"price"`
+	Status     NullAppUnitStatus `db:"status" json:"status"`
 }

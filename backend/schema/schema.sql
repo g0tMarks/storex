@@ -6,21 +6,14 @@
 CREATE SCHEMA IF NOT EXISTS app;
 
 -- ENUMs
-DO $$ BEGIN
-    CREATE TYPE app.unit_status AS ENUM ('available', 'reserved', 'occupied', 'maintenance');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+CREATE TYPE app.unit_status AS ENUM ('available', 'reserved', 'occupied', 'maintenance');
+CREATE TYPE app.agreement_status AS ENUM ('active', 'terminated', 'expired', 'pending');
+CREATE TYPE app.invoice_status AS ENUM ('unpaid', 'paid', 'overdue', 'cancelled');
+CREATE TYPE app.payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
+CREATE TYPE app.message_type AS ENUM ('sms', 'email', 'system');
+CREATE TYPE app.message_direction AS ENUM ('inbound', 'outbound');
+CREATE TYPE app.message_status AS ENUM ('queued', 'sent', 'delivered', 'failed');
 
-DO $$ BEGIN
-    CREATE TYPE app.agreement_status AS ENUM ('active', 'terminated', 'expired', 'pending');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE app.invoice_status AS ENUM ('unpaid', 'paid', 'overdue', 'cancelled');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE app.payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Customers
 CREATE TABLE IF NOT EXISTS app.customers (

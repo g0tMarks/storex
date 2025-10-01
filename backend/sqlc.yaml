@@ -19,3 +19,27 @@ sql:
         output_models_file_name: "models.go"
         output_querier_file_name: "querier.go"
         output_files_suffix: "_gen"
+        overrides:
+        - db_type: "numeric"
+          go_type: "float64"
+        - db_type: "app.unit_status"
+          go_type:
+            type: "UnitStatus"
+        - db_type: "app.agreement_status"
+          go_type:
+            type: "AgreementStatus"
+        - db_type: "app.invoice_status"
+          go_type:
+            type: "InvoiceStatus"
+        - db_type: "app.payment_status"
+          go_type:
+            type: "PaymentStatus"
+        - db_type: "app.message_type"
+          go_type:
+            type: "MessageType"
+        - db_type: "app.message_direction"
+          go_type:
+            type: "MessageDirection"
+        - db_type: "app.message_status"
+          go_type:
+            type: "MessageStatus"

@@ -19,17 +19,17 @@ INSERT INTO app.agreements (
     end_date,
     status
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5::app.agreement_status
 )
 RETURNING agreement_id, customer_id, unit_id, start_date, end_date, status
 `
 
 type CreateAgreementParams struct {
-	CustomerID int64        `db:"customer_id" json:"customerId"`
-	UnitID     int64        `db:"unit_id" json:"unitId"`
-	StartDate  time.Time    `db:"start_date" json:"startDate"`
-	EndDate    sql.NullTime `db:"end_date" json:"endDate"`
-	Status     interface{}  `db:"status" json:"status"`
+	CustomerID int64              `db:"customer_id" json:"customerId"`
+	UnitID     int64              `db:"unit_id" json:"unitId"`
+	StartDate  time.Time          `db:"start_date" json:"startDate"`
+	EndDate    sql.NullTime       `db:"end_date" json:"endDate"`
+	Column5    AppAgreementStatus `db:"column_5" json:"column5"`
 }
 
 func (q *Queries) CreateAgreement(ctx context.Context, arg CreateAgreementParams) (AppAgreement, error) {
@@ -38,7 +38,7 @@ func (q *Queries) CreateAgreement(ctx context.Context, arg CreateAgreementParams
 		arg.UnitID,
 		arg.StartDate,
 		arg.EndDate,
-		arg.Status,
+		arg.Column5,
 	)
 	var i AppAgreement
 	err := row.Scan(
@@ -247,18 +247,18 @@ func (q *Queries) ListAgreementsByCustomer(ctx context.Context, customerID int64
 
 const updateAgreementStatus = `-- name: UpdateAgreementStatus :one
 UPDATE app.agreements
-SET status = $2
+SET status = $2::app.agreement_status
 WHERE agreement_id = $1
 RETURNING agreement_id, customer_id, unit_id, start_date, end_date, status
 `
 
 type UpdateAgreementStatusParams struct {
-	AgreementID int64       `db:"agreement_id" json:"agreementId"`
-	Status      interface{} `db:"status" json:"status"`
+	AgreementID int64              `db:"agreement_id" json:"agreementId"`
+	Column2     AppAgreementStatus `db:"column_2" json:"column2"`
 }
 
 func (q *Queries) UpdateAgreementStatus(ctx context.Context, arg UpdateAgreementStatusParams) (AppAgreement, error) {
-	row := q.db.QueryRowContext(ctx, updateAgreementStatus, arg.AgreementID, arg.Status)
+	row := q.db.QueryRowContext(ctx, updateAgreementStatus, arg.AgreementID, arg.Column2)
 	var i AppAgreement
 	err := row.Scan(
 		&i.AgreementID,

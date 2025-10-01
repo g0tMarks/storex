@@ -12,15 +12,15 @@ import (
 
 const createPayment = `-- name: CreatePayment :one
 INSERT INTO app.payments (invoice_id, method, gateway_ref, status)
-VALUES ($1, $2, $3, $4)
+VALUES ($1, $2, $3, $4::app.payment_status)
 RETURNING payment_id, invoice_id, method, gateway_ref, status
 `
 
 type CreatePaymentParams struct {
-	InvoiceID  int64          `db:"invoice_id" json:"invoiceId"`
-	Method     sql.NullString `db:"method" json:"method"`
-	GatewayRef sql.NullString `db:"gateway_ref" json:"gatewayRef"`
-	Status     interface{}    `db:"status" json:"status"`
+	InvoiceID  int64            `db:"invoice_id" json:"invoiceId"`
+	Method     sql.NullString   `db:"method" json:"method"`
+	GatewayRef sql.NullString   `db:"gateway_ref" json:"gatewayRef"`
+	Column4    AppPaymentStatus `db:"column_4" json:"column4"`
 }
 
 func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (AppPayment, error) {
@@ -28,7 +28,7 @@ func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (A
 		arg.InvoiceID,
 		arg.Method,
 		arg.GatewayRef,
-		arg.Status,
+		arg.Column4,
 	)
 	var i AppPayment
 	err := row.Scan(
@@ -102,17 +102,17 @@ func (q *Queries) ListPayments(ctx context.Context) ([]AppPayment, error) {
 
 const updatePayment = `-- name: UpdatePayment :one
 UPDATE app.payments
-SET invoice_id = $2, method = $3, gateway_ref = $4, status = $5
+SET invoice_id = $2, method = $3, gateway_ref = $4::app.payment_status, status = $5::app.payment_status
 WHERE payment_id = $1
 RETURNING payment_id, invoice_id, method, gateway_ref, status
 `
 
 type UpdatePaymentParams struct {
-	PaymentID  int64          `db:"payment_id" json:"paymentId"`
-	InvoiceID  int64          `db:"invoice_id" json:"invoiceId"`
-	Method     sql.NullString `db:"method" json:"method"`
-	GatewayRef sql.NullString `db:"gateway_ref" json:"gatewayRef"`
-	Status     interface{}    `db:"status" json:"status"`
+	PaymentID int64            `db:"payment_id" json:"paymentId"`
+	InvoiceID int64            `db:"invoice_id" json:"invoiceId"`
+	Method    sql.NullString   `db:"method" json:"method"`
+	Column4   AppPaymentStatus `db:"column_4" json:"column4"`
+	Column5   AppPaymentStatus `db:"column_5" json:"column5"`
 }
 
 func (q *Queries) UpdatePayment(ctx context.Context, arg UpdatePaymentParams) (AppPayment, error) {
@@ -120,8 +120,8 @@ func (q *Queries) UpdatePayment(ctx context.Context, arg UpdatePaymentParams) (A
 		arg.PaymentID,
 		arg.InvoiceID,
 		arg.Method,
-		arg.GatewayRef,
-		arg.Status,
+		arg.Column4,
+		arg.Column5,
 	)
 	var i AppPayment
 	err := row.Scan(

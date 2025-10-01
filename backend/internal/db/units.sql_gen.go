@@ -12,7 +12,7 @@ import (
 
 const createUnit = `-- name: CreateUnit :one
 INSERT INTO app.units (facility_id, unit_type, size, price, status)
-VALUES ($1, $2, $3, $4, $5)
+VALUES ($1, $2, $3, $4, $5::app.unit_status)
 RETURNING unit_id, facility_id, unit_type, size, price, status
 `
 
@@ -21,7 +21,7 @@ type CreateUnitParams struct {
 	UnitType   sql.NullString `db:"unit_type" json:"unitType"`
 	Size       sql.NullString `db:"size" json:"size"`
 	Price      sql.NullString `db:"price" json:"price"`
-	Status     interface{}    `db:"status" json:"status"`
+	Column5    AppUnitStatus  `db:"column_5" json:"column5"`
 }
 
 func (q *Queries) CreateUnit(ctx context.Context, arg CreateUnitParams) (AppUnit, error) {
@@ -30,7 +30,7 @@ func (q *Queries) CreateUnit(ctx context.Context, arg CreateUnitParams) (AppUnit
 		arg.UnitType,
 		arg.Size,
 		arg.Price,
-		arg.Status,
+		arg.Column5,
 	)
 	var i AppUnit
 	err := row.Scan(
@@ -148,7 +148,7 @@ func (q *Queries) ListUnitsByFacility(ctx context.Context, facilityID int64) ([]
 
 const updateUnit = `-- name: UpdateUnit :one
 UPDATE app.units
-SET facility_id = $2, unit_type = $3, size = $4, price = $5, status = $6
+SET facility_id = $2, unit_type = $3, size = $4, price = $5::app.unit_status, status = $6::app.unit_status
 WHERE unit_id = $1
 RETURNING unit_id, facility_id, unit_type, size, price, status
 `
@@ -158,8 +158,8 @@ type UpdateUnitParams struct {
 	FacilityID int64          `db:"facility_id" json:"facilityId"`
 	UnitType   sql.NullString `db:"unit_type" json:"unitType"`
 	Size       sql.NullString `db:"size" json:"size"`
-	Price      sql.NullString `db:"price" json:"price"`
-	Status     interface{}    `db:"status" json:"status"`
+	Column5    AppUnitStatus  `db:"column_5" json:"column5"`
+	Column6    AppUnitStatus  `db:"column_6" json:"column6"`
 }
 
 func (q *Queries) UpdateUnit(ctx context.Context, arg UpdateUnitParams) (AppUnit, error) {
@@ -168,8 +168,8 @@ func (q *Queries) UpdateUnit(ctx context.Context, arg UpdateUnitParams) (AppUnit
 		arg.FacilityID,
 		arg.UnitType,
 		arg.Size,
-		arg.Price,
-		arg.Status,
+		arg.Column5,
+		arg.Column6,
 	)
 	var i AppUnit
 	err := row.Scan(
