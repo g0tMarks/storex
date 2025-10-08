@@ -7,13 +7,17 @@ import (
 	"log"
 	"os"
 
+	// Requires a fully qualified module path
 	"github.com/g0tMarks/storex.git/backend/internal/db"
 	"github.com/joho/godotenv"
+
+	//The underscore imports the package as well as runs its init() function
 	_ "github.com/lib/pq"
 )
 
 func main() {
 	// Load .env file manually
+	// Adjust path as needed because by default it looks in the current working directory for .env
 	err := godotenv.Load("../../../.env")
 	if err != nil {
 		fmt.Println("No .env file found, using environment variables")
@@ -28,19 +32,25 @@ func main() {
 	fmt.Println("DB URI:", dbURI)
 
 	// Connect to DB
-	conn, err := sql.Open("postgres", dbURI)
+	// sql.Open() is from lib/pq and requires a driver name "postgres" as the first argument and the URL as the second argument
 	if err != nil {
+		conn, err := sql.Open("postgres", dbURI)
 		log.Fatal("cannot connect to db:", err)
 	}
+
+	//defer the close to the end of main()
 	defer conn.Close()
 
+	// Ping to verify connection
 	if err := conn.Ping(); err != nil {
 		log.Fatal("db ping failed:", err)
 	}
 
 	fmt.Println("Connected to DB")
 
+	//db.New() is from sqlc generated code in internal/db/db.go
 	queries := db.New(conn)
+	// Context for DB operations
 	ctx := context.Background()
 
 	// 1 Create a customer
