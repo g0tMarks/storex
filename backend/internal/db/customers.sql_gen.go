@@ -15,6 +15,8 @@ VALUES ($1)
 RETURNING customer_id, customer_name, created_at, is_enabled
 `
 
+// CreateCustomer creates a new customer and returns it. Func (q *Queries) is a receiver function that allows access to the Queries struct and its db field without copying it.
+// It takes 2 parameters and returns an AppCustomer struct and an error.
 func (q *Queries) CreateCustomer(ctx context.Context, customerName string) (AppCustomer, error) {
 	row := q.db.QueryRowContext(ctx, createCustomer, customerName)
 	var i AppCustomer
