@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	// Requires a fully qualified module path
 	"github.com/g0tMarks/storex.git/backend/internal/db"
@@ -33,8 +34,8 @@ func main() {
 
 	// Connect to DB
 	// sql.Open() is from lib/pq and requires a driver name "postgres" as the first argument and the URL as the second argument
+	conn, err := sql.Open("postgres", dbURI)
 	if err != nil {
-		conn, err := sql.Open("postgres", dbURI)
 		log.Fatal("cannot connect to db:", err)
 	}
 
@@ -78,53 +79,53 @@ func main() {
 		UnitType:   sql.NullString{String: "Small Locker", Valid: true},
 		Size:       sql.NullString{String: "2x2", Valid: true},
 		Price:      sql.NullString{String: "120.0", Valid: true},
-		//Status:     db.AppUnitStatusAvailable, // enum
+		Status:     db.AppUnitStatusAvailable, // enum
 	})
 	if err != nil {
 		log.Fatal("failed to create unit:", err)
 	}
-	fmt.Printf("Unit: %d status=%s\n", unit.UnitID, unit.Status)
+	fmt.Printf("3. DONE! Created Unit: ID %d type: %s status: %s\n", unit.UnitID, unit.UnitType.String, unit.Status.AppUnitStatus)
+
+	// 4 Create an agreement
+
+	agreement, err := queries.CreateAgreement(ctx, db.CreateAgreementParams{
+		CustomerID: customer.CustomerID,
+		UnitID:     unit.UnitID,
+		StartDate:  time.Now(),
+		EndDate:    sql.NullTime{Time: time.Now().AddDate(1, 1, 1), Valid: true},
+		Status:     db.AppAgreementStatusActive, // enum
+	})
+	if err != nil {
+		log.Fatal("failed to create agreement:", err)
+	}
+	fmt.Printf("4. DONE! Created Agreement: %d status=%s\n", agreement.AgreementID, agreement.Status.AppAgreementStatus)
 	/*
-	   // 4 Create an agreement
+		// 6 Record a payment
 
-	   	agreement, err := queries.CreateAgreement(ctx, db.CreateAgreementParams{
-	   		CustomerID: customer.CustomerID,
-	   		UnitID:     unit.UnitID,
-	   		StartDate:  time.Now(),
-	   		EndDate:    sql.NullTime{Time: time.Now().AddDate(0, 1, 0), Valid: true},
-	   			Status:     db.AgreementStatusActive, // enum
-	   		})
-	   		if err != nil {
-	   			log.Fatal("failed to create agreement:", err)
-	   		}
-	   		fmt.Printf("Agreement: %d status=%s\n", agreement.AgreementID, agreement.Status)
+			payment, err := queries.CreatePayment(ctx, db.CreatePaymentParams{
+				Method:     sql.NullString{String: "credit_card", Valid: true},
+				GatewayRef: sql.NullString{String: "TXN-12345", Valid: true},
+				Status:     db.PaymentStatusCompleted, // enum
+			})
+			if err != nil {
+				log.Fatal("failed to create payment:", err)
+			}
+			fmt.Printf("Payment: %d status=%s\n", payment.PaymentID, payment.Status)
 
-	   // 6 Record a payment
+		// 7 Log a message
 
-	   	payment, err := queries.CreatePayment(ctx, db.CreatePaymentParams{
-	   		Method:     sql.NullString{String: "credit_card", Valid: true},
-	   		GatewayRef: sql.NullString{String: "TXN-12345", Valid: true},
-	   		Status:     db.PaymentStatusCompleted, // enum
-	   	})
-	   	if err != nil {
-	   		log.Fatal("failed to create payment:", err)
-	   	}
-	   	fmt.Printf("Payment: %d status=%s\n", payment.PaymentID, payment.Status)
+			message, err := queries.CreateMessage(ctx, db.CreateMessageParams{
+				CustomerID: customer.CustomerID,
+				Type:       db.MessageTypeEmail,         // enum
+				Direction:  db.MessageDirectionOutbound, // enum
+				Status:     db.MessageStatusSent,        // enum
+			})
+			if err != nil {
+				log.Fatal("failed to create message:", err)
+			}
+			fmt.Printf("Message: %d type=%s status=%s\n", message.MessageID, message.Type, message.Status)
 
-	   // 7 Log a message
-
-	   	message, err := queries.CreateMessage(ctx, db.CreateMessageParams{
-	   		CustomerID: customer.CustomerID,
-	   		Type:       db.MessageTypeEmail,         // enum
-	   		Direction:  db.MessageDirectionOutbound, // enum
-	   		Status:     db.MessageStatusSent,        // enum
-	   	})
-	   	if err != nil {
-	   		log.Fatal("failed to create message:", err)
-	   	}
-	   	fmt.Printf("Message: %d type=%s status=%s\n", message.MessageID, message.Type, message.Status)
-
-	   	// Done
-	   	fmt.Println("Full demo flow completed successfully.")
+			// Done
+			fmt.Println("Full demo flow completed successfully.")
 	*/
 }
