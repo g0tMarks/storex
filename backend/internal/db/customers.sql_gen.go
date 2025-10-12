@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createCustomer = `-- name: CreateCustomer :one
@@ -15,8 +17,10 @@ VALUES ($1)
 RETURNING customer_id, customer_name, created_at, is_enabled
 `
 
-// CreateCustomer creates a new customer and returns it. Func (q *Queries) is a receiver function that allows access to the Queries struct and its db field without copying it.
+// CreateCustomer creates a new customer method and returns it. Func (q *Queries) is a pointer receiver function that allows access to the Queries struct and its db field without copying it.
 // It takes 2 parameters and returns an AppCustomer struct and an error.
+// To call this method, you would use queries.CreateCustomer(ctx, "Customer Name").
+// ctx is passed from context.Background() in main.go and is used for managing deadlines, cancelation signals, and other request-scoped values across API boundaries and between processes.
 func (q *Queries) CreateCustomer(ctx context.Context, customerName string) (AppCustomer, error) {
 	row := q.db.QueryRowContext(ctx, createCustomer, customerName)
 	var i AppCustomer
@@ -33,7 +37,7 @@ const deleteCustomer = `-- name: DeleteCustomer :exec
 DELETE FROM app.customers WHERE customer_id = $1
 `
 
-func (q *Queries) DeleteCustomer(ctx context.Context, customerID int64) error {
+func (q *Queries) DeleteCustomer(ctx context.Context, customerID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteCustomer, customerID)
 	return err
 }
@@ -42,7 +46,7 @@ const getCustomer = `-- name: GetCustomer :one
 SELECT customer_id, customer_name, created_at, is_enabled FROM app.customers WHERE customer_id = $1
 `
 
-func (q *Queries) GetCustomer(ctx context.Context, customerID int64) (AppCustomer, error) {
+func (q *Queries) GetCustomer(ctx context.Context, customerID uuid.UUID) (AppCustomer, error) {
 	row := q.db.QueryRowContext(ctx, getCustomer, customerID)
 	var i AppCustomer
 	err := row.Scan(
@@ -94,9 +98,9 @@ RETURNING customer_id, customer_name, created_at, is_enabled
 `
 
 type UpdateCustomerParams struct {
-	CustomerID   int64  `db:"customer_id" json:"customerId"`
-	CustomerName string `db:"customer_name" json:"customerName"`
-	IsEnabled    bool   `db:"is_enabled" json:"isEnabled"`
+	CustomerID   uuid.UUID `db:"customer_id" json:"customerId"`
+	CustomerName string    `db:"customer_name" json:"customerName"`
+	IsEnabled    bool      `db:"is_enabled" json:"isEnabled"`
 }
 
 func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (AppCustomer, error) {

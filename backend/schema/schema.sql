@@ -14,11 +14,13 @@ CREATE TYPE app.message_type AS ENUM ('sms', 'email', 'system');
 CREATE TYPE app.message_direction AS ENUM ('inbound', 'outbound');
 CREATE TYPE app.message_status AS ENUM ('queued', 'sent', 'delivered', 'failed');
 
+--Add UUID extension for unique identifiers
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Customers
 CREATE TABLE IF NOT EXISTS app.customers (
 
-    customer_id BIGSERIAL PRIMARY KEY,
+    customer_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     customer_name TEXT NOT NULL,
 
@@ -32,7 +34,7 @@ CREATE TABLE IF NOT EXISTS app.contacts (
 
     contact_id BIGSERIAL PRIMARY KEY,
 
-    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 
     first_name TEXT,
 
@@ -57,7 +59,7 @@ CREATE TABLE IF NOT EXISTS app.customer_addresses (
 
     address_id BIGSERIAL PRIMARY KEY,
 
-    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 
     type TEXT NOT NULL,
 
@@ -84,7 +86,7 @@ CREATE TABLE IF NOT EXISTS app.customer_access (
 
     access_id BIGSERIAL PRIMARY KEY,
 
-    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 
     pin TEXT,
 
@@ -99,7 +101,7 @@ CREATE TABLE IF NOT EXISTS app.customer_custom_fields (
 
     field_id BIGSERIAL PRIMARY KEY,
 
-    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 
     field_name TEXT NOT NULL,
 
@@ -147,7 +149,7 @@ CREATE TABLE IF NOT EXISTS app.agreements (
 
     agreement_id BIGSERIAL PRIMARY KEY,
 
-    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 
     unit_id BIGINT NOT NULL REFERENCES app.units(unit_id) ON DELETE CASCADE,
 
@@ -202,7 +204,7 @@ CREATE TABLE IF NOT EXISTS app.access_logs (
 
     log_id BIGSERIAL PRIMARY KEY,
 
-    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE SET NULL,
+    customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE SET NULL,
 
     unit_id BIGINT NOT NULL REFERENCES app.units(unit_id) ON DELETE SET NULL,
 
@@ -231,7 +233,7 @@ CREATE TABLE IF NOT EXISTS app.messages (
 
     message_id BIGSERIAL PRIMARY KEY,
 
-    customer_id BIGINT NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 
     type app.message_type,
 

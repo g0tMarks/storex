@@ -10,6 +10,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type AppAgreementStatus string
@@ -319,7 +321,7 @@ func (ns NullAppUnitStatus) Value() (driver.Value, error) {
 
 type AppAccessLog struct {
 	LogID      int64          `db:"log_id" json:"logId"`
-	CustomerID int64          `db:"customer_id" json:"customerId"`
+	CustomerID uuid.UUID      `db:"customer_id" json:"customerId"`
 	UnitID     int64          `db:"unit_id" json:"unitId"`
 	Datetime   time.Time      `db:"datetime" json:"datetime"`
 	Action     sql.NullString `db:"action" json:"action"`
@@ -327,7 +329,7 @@ type AppAccessLog struct {
 
 type AppAgreement struct {
 	AgreementID int64                  `db:"agreement_id" json:"agreementId"`
-	CustomerID  int64                  `db:"customer_id" json:"customerId"`
+	CustomerID  uuid.UUID              `db:"customer_id" json:"customerId"`
 	UnitID      int64                  `db:"unit_id" json:"unitId"`
 	StartDate   time.Time              `db:"start_date" json:"startDate"`
 	EndDate     sql.NullTime           `db:"end_date" json:"endDate"`
@@ -336,7 +338,7 @@ type AppAgreement struct {
 
 type AppContact struct {
 	ContactID   int64          `db:"contact_id" json:"contactId"`
-	CustomerID  int64          `db:"customer_id" json:"customerId"`
+	CustomerID  uuid.UUID      `db:"customer_id" json:"customerId"`
 	FirstName   sql.NullString `db:"first_name" json:"firstName"`
 	LastName    sql.NullString `db:"last_name" json:"lastName"`
 	Email       sql.NullString `db:"email" json:"email"`
@@ -348,7 +350,7 @@ type AppContact struct {
 }
 
 type AppCustomer struct {
-	CustomerID   int64     `db:"customer_id" json:"customerId"`
+	CustomerID   uuid.UUID `db:"customer_id" json:"customerId"`
 	CustomerName string    `db:"customer_name" json:"customerName"`
 	CreatedAt    time.Time `db:"created_at" json:"createdAt"`
 	IsEnabled    bool      `db:"is_enabled" json:"isEnabled"`
@@ -356,7 +358,7 @@ type AppCustomer struct {
 
 type AppCustomerAccess struct {
 	AccessID      int64          `db:"access_id" json:"accessId"`
-	CustomerID    int64          `db:"customer_id" json:"customerId"`
+	CustomerID    uuid.UUID      `db:"customer_id" json:"customerId"`
 	Pin           sql.NullString `db:"pin" json:"pin"`
 	AlwaysAllowed sql.NullBool   `db:"always_allowed" json:"alwaysAllowed"`
 	TimeZone      sql.NullString `db:"time_zone" json:"timeZone"`
@@ -364,7 +366,7 @@ type AppCustomerAccess struct {
 
 type AppCustomerAddress struct {
 	AddressID  int64          `db:"address_id" json:"addressId"`
-	CustomerID int64          `db:"customer_id" json:"customerId"`
+	CustomerID uuid.UUID      `db:"customer_id" json:"customerId"`
 	Type       string         `db:"type" json:"type"`
 	Line1      sql.NullString `db:"line1" json:"line1"`
 	Suburb     sql.NullString `db:"suburb" json:"suburb"`
@@ -378,7 +380,7 @@ type AppCustomerAddress struct {
 
 type AppCustomerCustomField struct {
 	FieldID    int64          `db:"field_id" json:"fieldId"`
-	CustomerID int64          `db:"customer_id" json:"customerId"`
+	CustomerID uuid.UUID      `db:"customer_id" json:"customerId"`
 	FieldName  string         `db:"field_name" json:"fieldName"`
 	FieldValue sql.NullString `db:"field_value" json:"fieldValue"`
 }
@@ -401,7 +403,7 @@ type AppInvoice struct {
 
 type AppMessage struct {
 	MessageID  int64                   `db:"message_id" json:"messageId"`
-	CustomerID int64                   `db:"customer_id" json:"customerId"`
+	CustomerID uuid.UUID               `db:"customer_id" json:"customerId"`
 	Type       NullAppMessageType      `db:"type" json:"type"`
 	Direction  NullAppMessageDirection `db:"direction" json:"direction"`
 	Status     NullAppMessageStatus    `db:"status" json:"status"`

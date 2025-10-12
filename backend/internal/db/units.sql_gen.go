@@ -17,11 +17,12 @@ RETURNING unit_id, facility_id, unit_type, size, price, status
 `
 
 type CreateUnitParams struct {
+	UnitID     int64          `db:"unit_id" json:"unitId"`
 	FacilityID int64          `db:"facility_id" json:"facilityId"`
 	UnitType   sql.NullString `db:"unit_type" json:"unitType"`
 	Size       sql.NullString `db:"size" json:"size"`
 	Price      sql.NullString `db:"price" json:"price"`
-	Column5    AppUnitStatus  `db:"column_5" json:"column5"`
+	Status     AppUnitStatus  `db:"status" json:"status"`
 }
 
 func (q *Queries) CreateUnit(ctx context.Context, arg CreateUnitParams) (AppUnit, error) {
@@ -30,7 +31,7 @@ func (q *Queries) CreateUnit(ctx context.Context, arg CreateUnitParams) (AppUnit
 		arg.UnitType,
 		arg.Size,
 		arg.Price,
-		arg.Column5,
+		arg.Status,
 	)
 	var i AppUnit
 	err := row.Scan(
@@ -158,8 +159,7 @@ type UpdateUnitParams struct {
 	FacilityID int64          `db:"facility_id" json:"facilityId"`
 	UnitType   sql.NullString `db:"unit_type" json:"unitType"`
 	Size       sql.NullString `db:"size" json:"size"`
-	Column5    AppUnitStatus  `db:"column_5" json:"column5"`
-	Column6    AppUnitStatus  `db:"column_6" json:"column6"`
+	Status     AppUnitStatus  `db:"status" json:"status"`
 }
 
 func (q *Queries) UpdateUnit(ctx context.Context, arg UpdateUnitParams) (AppUnit, error) {
@@ -168,8 +168,7 @@ func (q *Queries) UpdateUnit(ctx context.Context, arg UpdateUnitParams) (AppUnit
 		arg.FacilityID,
 		arg.UnitType,
 		arg.Size,
-		arg.Column5,
-		arg.Column6,
+		arg.Status,
 	)
 	var i AppUnit
 	err := row.Scan(

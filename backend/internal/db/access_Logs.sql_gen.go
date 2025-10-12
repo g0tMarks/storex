@@ -9,6 +9,8 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createAccessLog = `-- name: CreateAccessLog :one
@@ -18,7 +20,7 @@ RETURNING log_id, customer_id, unit_id, datetime, action
 `
 
 type CreateAccessLogParams struct {
-	CustomerID int64          `db:"customer_id" json:"customerId"`
+	CustomerID uuid.UUID      `db:"customer_id" json:"customerId"`
 	UnitID     int64          `db:"unit_id" json:"unitId"`
 	Datetime   time.Time      `db:"datetime" json:"datetime"`
 	Action     sql.NullString `db:"action" json:"action"`
@@ -55,7 +57,7 @@ const getAccessLogsByCustomer = `-- name: GetAccessLogsByCustomer :many
 SELECT log_id, customer_id, unit_id, datetime, action FROM app.access_logs WHERE customer_id = $1 ORDER BY datetime DESC
 `
 
-func (q *Queries) GetAccessLogsByCustomer(ctx context.Context, customerID int64) ([]AppAccessLog, error) {
+func (q *Queries) GetAccessLogsByCustomer(ctx context.Context, customerID uuid.UUID) ([]AppAccessLog, error) {
 	rows, err := q.db.QueryContext(ctx, getAccessLogsByCustomer, customerID)
 	if err != nil {
 		return nil, err

@@ -9,6 +9,8 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createAgreement = `-- name: CreateAgreement :one
@@ -25,11 +27,11 @@ RETURNING agreement_id, customer_id, unit_id, start_date, end_date, status
 `
 
 type CreateAgreementParams struct {
-	CustomerID int64              `db:"customer_id" json:"customerId"`
+	CustomerID uuid.UUID          `db:"customer_id" json:"customerId"`
 	UnitID     int64              `db:"unit_id" json:"unitId"`
 	StartDate  time.Time          `db:"start_date" json:"startDate"`
 	EndDate    sql.NullTime       `db:"end_date" json:"endDate"`
-	Column5    AppAgreementStatus `db:"column_5" json:"column5"`
+	Status     AppAgreementStatus `db:"column_5" json:"column5"`
 }
 
 func (q *Queries) CreateAgreement(ctx context.Context, arg CreateAgreementParams) (AppAgreement, error) {
@@ -38,7 +40,7 @@ func (q *Queries) CreateAgreement(ctx context.Context, arg CreateAgreementParams
 		arg.UnitID,
 		arg.StartDate,
 		arg.EndDate,
-		arg.Column5,
+		arg.Status,
 	)
 	var i AppAgreement
 	err := row.Scan(
@@ -215,7 +217,7 @@ WHERE customer_id = $1
 ORDER BY start_date DESC
 `
 
-func (q *Queries) ListAgreementsByCustomer(ctx context.Context, customerID int64) ([]AppAgreement, error) {
+func (q *Queries) ListAgreementsByCustomer(ctx context.Context, customerID uuid.UUID) ([]AppAgreement, error) {
 	rows, err := q.db.QueryContext(ctx, listAgreementsByCustomer, customerID)
 	if err != nil {
 		return nil, err

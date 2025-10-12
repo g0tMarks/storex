@@ -8,6 +8,8 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createAddress = `-- name: CreateAddress :one
@@ -17,7 +19,7 @@ RETURNING address_id, customer_id, type, line1, suburb, city, state, postcode, c
 `
 
 type CreateAddressParams struct {
-	CustomerID int64          `db:"customer_id" json:"customerId"`
+	CustomerID uuid.UUID      `db:"customer_id" json:"customerId"`
 	Type       string         `db:"type" json:"type"`
 	Line1      sql.NullString `db:"line1" json:"line1"`
 	Suburb     sql.NullString `db:"suburb" json:"suburb"`
@@ -72,7 +74,7 @@ const listAddressesByCustomer = `-- name: ListAddressesByCustomer :many
 SELECT address_id, customer_id, type, line1, suburb, city, state, postcode, country, latitude, longitude FROM app.customer_addresses WHERE customer_id = $1 ORDER BY type
 `
 
-func (q *Queries) ListAddressesByCustomer(ctx context.Context, customerID int64) ([]AppCustomerAddress, error) {
+func (q *Queries) ListAddressesByCustomer(ctx context.Context, customerID uuid.UUID) ([]AppCustomerAddress, error) {
 	rows, err := q.db.QueryContext(ctx, listAddressesByCustomer, customerID)
 	if err != nil {
 		return nil, err

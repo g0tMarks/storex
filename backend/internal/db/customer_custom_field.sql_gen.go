@@ -8,6 +8,8 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createCustomField = `-- name: CreateCustomField :one
@@ -17,7 +19,7 @@ RETURNING field_id, customer_id, field_name, field_value
 `
 
 type CreateCustomFieldParams struct {
-	CustomerID int64          `db:"customer_id" json:"customerId"`
+	CustomerID uuid.UUID      `db:"customer_id" json:"customerId"`
 	FieldName  string         `db:"field_name" json:"fieldName"`
 	FieldValue sql.NullString `db:"field_value" json:"fieldValue"`
 }
@@ -47,7 +49,7 @@ const listCustomFieldsByCustomer = `-- name: ListCustomFieldsByCustomer :many
 SELECT field_id, customer_id, field_name, field_value FROM app.customer_custom_fields WHERE customer_id = $1
 `
 
-func (q *Queries) ListCustomFieldsByCustomer(ctx context.Context, customerID int64) ([]AppCustomerCustomField, error) {
+func (q *Queries) ListCustomFieldsByCustomer(ctx context.Context, customerID uuid.UUID) ([]AppCustomerCustomField, error) {
 	rows, err := q.db.QueryContext(ctx, listCustomFieldsByCustomer, customerID)
 	if err != nil {
 		return nil, err

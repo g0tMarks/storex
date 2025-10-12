@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createMessage = `-- name: CreateMessage :one
@@ -16,7 +18,7 @@ RETURNING message_id, customer_id, type, direction, status
 `
 
 type CreateMessageParams struct {
-	CustomerID int64               `db:"customer_id" json:"customerId"`
+	CustomerID uuid.UUID           `db:"customer_id" json:"customerId"`
 	Column2    AppMessageType      `db:"column_2" json:"column2"`
 	Column3    AppMessageDirection `db:"column_3" json:"column3"`
 	Column4    AppMessageStatus    `db:"column_4" json:"column4"`
@@ -53,7 +55,7 @@ const getMessagesByCustomer = `-- name: GetMessagesByCustomer :many
 SELECT message_id, customer_id, type, direction, status FROM app.messages WHERE customer_id = $1 ORDER BY message_id DESC
 `
 
-func (q *Queries) GetMessagesByCustomer(ctx context.Context, customerID int64) ([]AppMessage, error) {
+func (q *Queries) GetMessagesByCustomer(ctx context.Context, customerID uuid.UUID) ([]AppMessage, error) {
 	rows, err := q.db.QueryContext(ctx, getMessagesByCustomer, customerID)
 	if err != nil {
 		return nil, err

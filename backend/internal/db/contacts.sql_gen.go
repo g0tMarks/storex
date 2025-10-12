@@ -8,6 +8,8 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createContact = `-- name: CreateContact :one
@@ -17,7 +19,7 @@ RETURNING contact_id, customer_id, first_name, last_name, email, phone_mobile, p
 `
 
 type CreateContactParams struct {
-	CustomerID  int64          `db:"customer_id" json:"customerId"`
+	CustomerID  uuid.UUID      `db:"customer_id" json:"customerId"`
 	FirstName   sql.NullString `db:"first_name" json:"firstName"`
 	LastName    sql.NullString `db:"last_name" json:"lastName"`
 	Email       sql.NullString `db:"email" json:"email"`
@@ -69,7 +71,7 @@ const listContactsByCustomer = `-- name: ListContactsByCustomer :many
 SELECT contact_id, customer_id, first_name, last_name, email, phone_mobile, phone_home, phone_work, role, is_primary FROM app.contacts WHERE customer_id = $1 ORDER BY is_primary DESC
 `
 
-func (q *Queries) ListContactsByCustomer(ctx context.Context, customerID int64) ([]AppContact, error) {
+func (q *Queries) ListContactsByCustomer(ctx context.Context, customerID uuid.UUID) ([]AppContact, error) {
 	rows, err := q.db.QueryContext(ctx, listContactsByCustomer, customerID)
 	if err != nil {
 		return nil, err

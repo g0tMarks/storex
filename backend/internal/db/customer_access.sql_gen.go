@@ -8,6 +8,8 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createAccess = `-- name: CreateAccess :one
@@ -17,7 +19,7 @@ RETURNING access_id, customer_id, pin, always_allowed, time_zone
 `
 
 type CreateAccessParams struct {
-	CustomerID    int64          `db:"customer_id" json:"customerId"`
+	CustomerID    uuid.UUID      `db:"customer_id" json:"customerId"`
 	Pin           sql.NullString `db:"pin" json:"pin"`
 	AlwaysAllowed sql.NullBool   `db:"always_allowed" json:"alwaysAllowed"`
 	TimeZone      sql.NullString `db:"time_zone" json:"timeZone"`
@@ -54,7 +56,7 @@ const getAccessByCustomer = `-- name: GetAccessByCustomer :one
 SELECT access_id, customer_id, pin, always_allowed, time_zone FROM app.customer_access WHERE customer_id = $1
 `
 
-func (q *Queries) GetAccessByCustomer(ctx context.Context, customerID int64) (AppCustomerAccess, error) {
+func (q *Queries) GetAccessByCustomer(ctx context.Context, customerID uuid.UUID) (AppCustomerAccess, error) {
 	row := q.db.QueryRowContext(ctx, getAccessByCustomer, customerID)
 	var i AppCustomerAccess
 	err := row.Scan(
