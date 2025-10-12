@@ -10,6 +10,7 @@ import (
 
 	// Requires a fully qualified module path
 	"github.com/g0tMarks/storex.git/backend/internal/db"
+	_ "github.com/google/uuid"
 	"github.com/joho/godotenv"
 
 	//The underscore imports the package as well as runs its init() function
@@ -55,11 +56,11 @@ func main() {
 	ctx := context.Background()
 
 	// 1 Create a customer
-	customer, err := queries.CreateCustomer(ctx, "Acme Storage Test")
+	customer, err := queries.CreateCustomer(ctx, "John Smith")
 	if err != nil {
 		log.Fatal("failed to create customer:", err)
 	}
-	fmt.Printf("1. DONE! Created Customer: %d %s\n", customer.CustomerID, customer.CustomerName)
+	fmt.Printf("1. DONE! Created CustomerID: %d and Customer Name: %s\n", customer.CustomerID, customer.CustomerName)
 
 	// 2 Create a facility
 	facility, err := queries.CreateFacility(ctx, db.CreateFacilityParams{
@@ -89,7 +90,7 @@ func main() {
 	// 4 Create an agreement
 
 	agreement, err := queries.CreateAgreement(ctx, db.CreateAgreementParams{
-		CustomerID: customer.CustomerID,
+		CustomerID: customer.CustomerID, // convert UUID to string if struct expects string
 		UnitID:     unit.UnitID,
 		StartDate:  time.Now(),
 		EndDate:    sql.NullTime{Time: time.Now().AddDate(1, 1, 1), Valid: true},
@@ -100,32 +101,34 @@ func main() {
 	}
 	fmt.Printf("4. DONE! Created Agreement: %d status=%s\n", agreement.AgreementID, agreement.Status.AppAgreementStatus)
 	/*
-		// 6 Record a payment
+	   // 6 Record a payment
 
-			payment, err := queries.CreatePayment(ctx, db.CreatePaymentParams{
-				Method:     sql.NullString{String: "credit_card", Valid: true},
-				GatewayRef: sql.NullString{String: "TXN-12345", Valid: true},
-				Status:     db.PaymentStatusCompleted, // enum
-			})
-			if err != nil {
-				log.Fatal("failed to create payment:", err)
-			}
-			fmt.Printf("Payment: %d status=%s\n", payment.PaymentID, payment.Status)
+	   	payment, err := queries.CreatePayment(ctx, db.CreatePaymentParams{
+	   		Method:     sql.NullString{String: "credit_card", Valid: true},
+	   		GatewayRef: sql.NullString{String: "TXN-12345", Valid: true},
+	   		Status:     db.PaymentStatusCompleted, // enum
+	   	})
 
-		// 7 Log a message
+	   	if err != nil {
+	   		log.Fatal("failed to create payment:", err)
+	   	}
 
-			message, err := queries.CreateMessage(ctx, db.CreateMessageParams{
-				CustomerID: customer.CustomerID,
-				Type:       db.MessageTypeEmail,         // enum
-				Direction:  db.MessageDirectionOutbound, // enum
-				Status:     db.MessageStatusSent,        // enum
-			})
-			if err != nil {
-				log.Fatal("failed to create message:", err)
-			}
-			fmt.Printf("Message: %d type=%s status=%s\n", message.MessageID, message.Type, message.Status)
+	   fmt.Printf("5. DONE! Created Payment: %d status=%s\n", payment.PaymentID, payment.Status)
 
-			// Done
-			fmt.Println("Full demo flow completed successfully.")
+	   	// 7 Log a message
+
+	   		message, err := queries.CreateMessage(ctx, db.CreateMessageParams{
+	   			CustomerID: customer.CustomerID,
+	   			Type:       db.MessageTypeEmail,         // enum
+	   			Direction:  db.MessageDirectionOutbound, // enum
+	   			Status:     db.MessageStatusSent,        // enum
+	   		})
+	   		if err != nil {
+	   			log.Fatal("failed to create message:", err)
+	   		}
+	   		fmt.Printf("Message: %d type=%s status=%s\n", message.MessageID, message.Type, message.Status)
+
+	   		// Done
+	   		fmt.Println("Full demo flow completed successfully.")
 	*/
 }
