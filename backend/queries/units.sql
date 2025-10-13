@@ -16,13 +16,13 @@ ORDER BY unit_id;
 
 -- name: CreateUnit :one
 INSERT INTO app.units (facility_id, unit_type, size, price, status)
-VALUES ($1, $2, $3, $4, $5::app.unit_status)
+VALUES (@facility_id, @unit_type, @size, @price, @status::app.unit_status)
 RETURNING *;
 
 -- name: UpdateUnit :one
 UPDATE app.units
-SET facility_id = $2, unit_type = $3, size = $4, price = $5::app.unit_status, status = $6::app.unit_status
-WHERE unit_id = $1
+SET facility_id = @facility_id, unit_type = @unit_type, size = @size, price = @price, status = @status::app.unit_status
+WHERE unit_id = @unit_id
 RETURNING *;
 
 -- name: DeleteUnit :exec

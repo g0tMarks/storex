@@ -12,7 +12,7 @@ RETURNING *;
 -- name: UpdateCustomer :one
 UPDATE app.customers
 SET customer_name = $2, is_enabled = $3
-WHERE customer_id = $1::uuid;
+WHERE customer_id = $1::uuid
 RETURNING *;
 
 -- name: DeleteCustomer :exec

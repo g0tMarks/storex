@@ -12,7 +12,7 @@ INSERT INTO app.agreements (
     end_date,
     status
 ) VALUES (
-    $1, $2, $3, $4, $5::app.agreement_status
+    @customer_id, @unit_id, @start_date, @end_date, @status::app.agreement_status
 )
 RETURNING *;
 
@@ -26,8 +26,8 @@ ORDER BY start_date DESC;
 
 -- name: UpdateAgreementStatus :one
 UPDATE app.agreements
-SET status = $2::app.agreement_status
-WHERE agreement_id = $1
+SET status = @status::app.agreement_status
+WHERE agreement_id = @agreement_id
 RETURNING *;
 
 -- name: DeleteAgreement :exec

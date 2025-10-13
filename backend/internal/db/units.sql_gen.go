@@ -17,7 +17,6 @@ RETURNING unit_id, facility_id, unit_type, size, price, status
 `
 
 type CreateUnitParams struct {
-	UnitID     int64          `db:"unit_id" json:"unitId"`
 	FacilityID int64          `db:"facility_id" json:"facilityId"`
 	UnitType   sql.NullString `db:"unit_type" json:"unitType"`
 	Size       sql.NullString `db:"size" json:"size"`
@@ -149,26 +148,28 @@ func (q *Queries) ListUnitsByFacility(ctx context.Context, facilityID int64) ([]
 
 const updateUnit = `-- name: UpdateUnit :one
 UPDATE app.units
-SET facility_id = $2, unit_type = $3, size = $4, price = $5::app.unit_status, status = $6::app.unit_status
-WHERE unit_id = $1
+SET facility_id = $1, unit_type = $2, size = $3, price = $4, status = $5::app.unit_status
+WHERE unit_id = $6
 RETURNING unit_id, facility_id, unit_type, size, price, status
 `
 
 type UpdateUnitParams struct {
-	UnitID     int64          `db:"unit_id" json:"unitId"`
 	FacilityID int64          `db:"facility_id" json:"facilityId"`
 	UnitType   sql.NullString `db:"unit_type" json:"unitType"`
 	Size       sql.NullString `db:"size" json:"size"`
+	Price      sql.NullString `db:"price" json:"price"`
 	Status     AppUnitStatus  `db:"status" json:"status"`
+	UnitID     int64          `db:"unit_id" json:"unitId"`
 }
 
 func (q *Queries) UpdateUnit(ctx context.Context, arg UpdateUnitParams) (AppUnit, error) {
 	row := q.db.QueryRowContext(ctx, updateUnit,
-		arg.UnitID,
 		arg.FacilityID,
 		arg.UnitType,
 		arg.Size,
+		arg.Price,
 		arg.Status,
+		arg.UnitID,
 	)
 	var i AppUnit
 	err := row.Scan(

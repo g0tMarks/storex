@@ -31,7 +31,7 @@ type CreateAgreementParams struct {
 	UnitID     int64              `db:"unit_id" json:"unitId"`
 	StartDate  time.Time          `db:"start_date" json:"startDate"`
 	EndDate    sql.NullTime       `db:"end_date" json:"endDate"`
-	Status     AppAgreementStatus `db:"column_5" json:"column5"`
+	Status     AppAgreementStatus `db:"status" json:"status"`
 }
 
 func (q *Queries) CreateAgreement(ctx context.Context, arg CreateAgreementParams) (AppAgreement, error) {
@@ -249,18 +249,18 @@ func (q *Queries) ListAgreementsByCustomer(ctx context.Context, customerID uuid.
 
 const updateAgreementStatus = `-- name: UpdateAgreementStatus :one
 UPDATE app.agreements
-SET status = $2::app.agreement_status
-WHERE agreement_id = $1
+SET status = $1::app.agreement_status
+WHERE agreement_id = $2
 RETURNING agreement_id, customer_id, unit_id, start_date, end_date, status
 `
 
 type UpdateAgreementStatusParams struct {
+	Status      AppAgreementStatus `db:"status" json:"status"`
 	AgreementID int64              `db:"agreement_id" json:"agreementId"`
-	Column2     AppAgreementStatus `db:"column_2" json:"column2"`
 }
 
 func (q *Queries) UpdateAgreementStatus(ctx context.Context, arg UpdateAgreementStatusParams) (AppAgreement, error) {
-	row := q.db.QueryRowContext(ctx, updateAgreementStatus, arg.AgreementID, arg.Column2)
+	row := q.db.QueryRowContext(ctx, updateAgreementStatus, arg.Status, arg.AgreementID)
 	var i AppAgreement
 	err := row.Scan(
 		&i.AgreementID,
