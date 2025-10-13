@@ -33,8 +33,8 @@ const deleteCustomer = `-- name: DeleteCustomer :exec
 DELETE FROM app.customers WHERE customer_id = $1::uuid
 `
 
-func (q *Queries) DeleteCustomer(ctx context.Context, dollar_1 uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteCustomer, dollar_1)
+func (q *Queries) DeleteCustomer(ctx context.Context, customerID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteCustomer, customerID)
 	return err
 }
 
@@ -42,8 +42,8 @@ const getCustomer = `-- name: GetCustomer :one
 SELECT customer_id, customer_name, created_at, is_enabled FROM app.customers WHERE customer_id = $1::uuid
 `
 
-func (q *Queries) GetCustomer(ctx context.Context, dollar_1 uuid.UUID) (AppCustomer, error) {
-	row := q.db.QueryRowContext(ctx, getCustomer, dollar_1)
+func (q *Queries) GetCustomer(ctx context.Context, customerID uuid.UUID) (AppCustomer, error) {
+	row := q.db.QueryRowContext(ctx, getCustomer, customerID)
 	var i AppCustomer
 	err := row.Scan(
 		&i.CustomerID,
@@ -88,19 +88,19 @@ func (q *Queries) ListCustomers(ctx context.Context) ([]AppCustomer, error) {
 
 const updateCustomer = `-- name: UpdateCustomer :one
 UPDATE app.customers
-SET customer_name = $2, is_enabled = $3
-WHERE customer_id = $1::uuid
+SET customer_name = $1, is_enabled = $2
+WHERE customer_id = $3::uuid
 RETURNING customer_id, customer_name, created_at, is_enabled
 `
 
 type UpdateCustomerParams struct {
-	Column1      uuid.UUID `db:"column_1" json:"column1"`
 	CustomerName string    `db:"customer_name" json:"customerName"`
 	IsEnabled    bool      `db:"is_enabled" json:"isEnabled"`
+	CustomerID   uuid.UUID `db:"customer_id" json:"customerId"`
 }
 
 func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (AppCustomer, error) {
-	row := q.db.QueryRowContext(ctx, updateCustomer, arg.Column1, arg.CustomerName, arg.IsEnabled)
+	row := q.db.QueryRowContext(ctx, updateCustomer, arg.CustomerName, arg.IsEnabled, arg.CustomerID)
 	var i AppCustomer
 	err := row.Scan(
 		&i.CustomerID,

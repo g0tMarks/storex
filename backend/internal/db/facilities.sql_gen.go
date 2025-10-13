@@ -9,6 +9,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+
+	"github.com/google/uuid"
 )
 
 const createFacility = `-- name: CreateFacility :one
@@ -51,10 +53,10 @@ func (q *Queries) CreateFacility(ctx context.Context, arg CreateFacilityParams) 
 const getFacility = `-- name: GetFacility :one
 SELECT facility_id, name, address, region, config 
 FROM app.facilities 
-WHERE facility_id = $1
+WHERE facility_id = $1::uuid
 `
 
-func (q *Queries) GetFacility(ctx context.Context, facilityID int64) (AppFacility, error) {
+func (q *Queries) GetFacility(ctx context.Context, facilityID uuid.UUID) (AppFacility, error) {
 	row := q.db.QueryRowContext(ctx, getFacility, facilityID)
 	var i AppFacility
 	err := row.Scan(

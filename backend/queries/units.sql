@@ -6,12 +6,12 @@ ORDER BY unit_id;
 -- name: GetUnit :one
 SELECT * 
 FROM app.units 
-WHERE unit_id = $1;
+WHERE unit_id = @unit_id::uuid;
 
 -- name: ListUnitsByFacility :many
 SELECT * 
 FROM app.units
-WHERE facility_id = $1
+WHERE facility_id = @facility_id::uuid
 ORDER BY unit_id;
 
 -- name: CreateUnit :one
@@ -22,8 +22,8 @@ RETURNING *;
 -- name: UpdateUnit :one
 UPDATE app.units
 SET facility_id = @facility_id, unit_type = @unit_type, size = @size, price = @price, status = @status::app.unit_status
-WHERE unit_id = @unit_id
+WHERE unit_id = @unit_id::uuid
 RETURNING *;
 
 -- name: DeleteUnit :exec
-DELETE FROM app.units WHERE unit_id = $1;
+DELETE FROM app.units WHERE unit_id = @unit_id::uuid;

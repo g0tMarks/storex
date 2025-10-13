@@ -28,7 +28,7 @@ RETURNING agreement_id, customer_id, unit_id, start_date, end_date, status
 
 type CreateAgreementParams struct {
 	CustomerID uuid.UUID          `db:"customer_id" json:"customerId"`
-	UnitID     int64              `db:"unit_id" json:"unitId"`
+	UnitID     uuid.UUID          `db:"unit_id" json:"unitId"`
 	StartDate  time.Time          `db:"start_date" json:"startDate"`
 	EndDate    sql.NullTime       `db:"end_date" json:"endDate"`
 	Status     AppAgreementStatus `db:"status" json:"status"`
@@ -56,19 +56,19 @@ func (q *Queries) CreateAgreement(ctx context.Context, arg CreateAgreementParams
 
 const deleteAgreement = `-- name: DeleteAgreement :exec
 DELETE FROM app.agreements
-WHERE agreement_id = $1
+WHERE agreement_id = $1::uuid
 `
 
-func (q *Queries) DeleteAgreement(ctx context.Context, agreementID int64) error {
+func (q *Queries) DeleteAgreement(ctx context.Context, agreementID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteAgreement, agreementID)
 	return err
 }
 
 const getAgreement = `-- name: GetAgreement :one
-SELECT agreement_id, customer_id, unit_id, start_date, end_date, status FROM app.agreements WHERE agreement_id = $1
+SELECT agreement_id, customer_id, unit_id, start_date, end_date, status FROM app.agreements WHERE agreement_id = $1::uuid
 `
 
-func (q *Queries) GetAgreement(ctx context.Context, agreementID int64) (AppAgreement, error) {
+func (q *Queries) GetAgreement(ctx context.Context, agreementID uuid.UUID) (AppAgreement, error) {
 	row := q.db.QueryRowContext(ctx, getAgreement, agreementID)
 	var i AppAgreement
 	err := row.Scan(
@@ -83,10 +83,10 @@ func (q *Queries) GetAgreement(ctx context.Context, agreementID int64) (AppAgree
 }
 
 const getAgreementByID = `-- name: GetAgreementByID :one
-SELECT agreement_id, customer_id, unit_id, start_date, end_date, status FROM app.agreements WHERE agreement_id = $1
+SELECT agreement_id, customer_id, unit_id, start_date, end_date, status FROM app.agreements WHERE agreement_id = $1::uuid
 `
 
-func (q *Queries) GetAgreementByID(ctx context.Context, agreementID int64) (AppAgreement, error) {
+func (q *Queries) GetAgreementByID(ctx context.Context, agreementID uuid.UUID) (AppAgreement, error) {
 	row := q.db.QueryRowContext(ctx, getAgreementByID, agreementID)
 	var i AppAgreement
 	err := row.Scan(
@@ -104,10 +104,10 @@ const getAgreementCustomer = `-- name: GetAgreementCustomer :one
 SELECT c.customer_id, c.customer_name, c.created_at, c.is_enabled
 FROM app.agreements a
 JOIN app.customers c ON a.customer_id = c.customer_id
-WHERE a.agreement_id = $1
+WHERE a.agreement_id = $1::uuid
 `
 
-func (q *Queries) GetAgreementCustomer(ctx context.Context, agreementID int64) (AppCustomer, error) {
+func (q *Queries) GetAgreementCustomer(ctx context.Context, agreementID uuid.UUID) (AppCustomer, error) {
 	row := q.db.QueryRowContext(ctx, getAgreementCustomer, agreementID)
 	var i AppCustomer
 	err := row.Scan(
@@ -123,11 +123,11 @@ const getAgreementInvoices = `-- name: GetAgreementInvoices :many
 SELECT i.invoice_id, i.agreement_id, i.due_date, i.amount, i.status
 FROM app.agreements a
 JOIN app.invoices i ON a.agreement_id = i.agreement_id
-WHERE a.agreement_id = $1
+WHERE a.agreement_id = $1::uuid
 ORDER BY i.due_date DESC
 `
 
-func (q *Queries) GetAgreementInvoices(ctx context.Context, agreementID int64) ([]AppInvoice, error) {
+func (q *Queries) GetAgreementInvoices(ctx context.Context, agreementID uuid.UUID) ([]AppInvoice, error) {
 	rows, err := q.db.QueryContext(ctx, getAgreementInvoices, agreementID)
 	if err != nil {
 		return nil, err
@@ -160,10 +160,10 @@ const getAgreementUnit = `-- name: GetAgreementUnit :one
 SELECT u.unit_id, u.facility_id, u.unit_type, u.size, u.price, u.status
 FROM app.agreements a
 JOIN app.units u ON a.unit_id = u.unit_id
-WHERE a.agreement_id = $1
+WHERE a.agreement_id = $1::uuid
 `
 
-func (q *Queries) GetAgreementUnit(ctx context.Context, agreementID int64) (AppUnit, error) {
+func (q *Queries) GetAgreementUnit(ctx context.Context, agreementID uuid.UUID) (AppUnit, error) {
 	row := q.db.QueryRowContext(ctx, getAgreementUnit, agreementID)
 	var i AppUnit
 	err := row.Scan(
@@ -250,13 +250,13 @@ func (q *Queries) ListAgreementsByCustomer(ctx context.Context, customerID uuid.
 const updateAgreementStatus = `-- name: UpdateAgreementStatus :one
 UPDATE app.agreements
 SET status = $1::app.agreement_status
-WHERE agreement_id = $2
+WHERE agreement_id = $2::uuid
 RETURNING agreement_id, customer_id, unit_id, start_date, end_date, status
 `
 
 type UpdateAgreementStatusParams struct {
 	Status      AppAgreementStatus `db:"status" json:"status"`
-	AgreementID int64              `db:"agreement_id" json:"agreementId"`
+	AgreementID uuid.UUID          `db:"agreement_id" json:"agreementId"`
 }
 
 func (q *Queries) UpdateAgreementStatus(ctx context.Context, arg UpdateAgreementStatusParams) (AppAgreement, error) {

@@ -8,6 +8,8 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createPayment = `-- name: CreatePayment :one
@@ -17,10 +19,10 @@ RETURNING payment_id, invoice_id, method, gateway_ref, status
 `
 
 type CreatePaymentParams struct {
-	InvoiceID  int64            `db:"invoice_id" json:"invoiceId"`
+	InvoiceID  uuid.UUID        `db:"invoice_id" json:"invoiceId"`
 	Method     sql.NullString   `db:"method" json:"method"`
 	GatewayRef sql.NullString   `db:"gateway_ref" json:"gatewayRef"`
-	Column4    AppPaymentStatus `db:"column_4" json:"column4"`
+	Status     AppPaymentStatus `db:"status" json:"status"`
 }
 
 func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (AppPayment, error) {
@@ -28,7 +30,7 @@ func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (A
 		arg.InvoiceID,
 		arg.Method,
 		arg.GatewayRef,
-		arg.Column4,
+		arg.Status,
 	)
 	var i AppPayment
 	err := row.Scan(
@@ -42,19 +44,19 @@ func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (A
 }
 
 const deletePayment = `-- name: DeletePayment :exec
-DELETE FROM app.payments WHERE payment_id = $1
+DELETE FROM app.payments WHERE payment_id = $1::uuid
 `
 
-func (q *Queries) DeletePayment(ctx context.Context, paymentID int64) error {
+func (q *Queries) DeletePayment(ctx context.Context, paymentID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deletePayment, paymentID)
 	return err
 }
 
 const getPayment = `-- name: GetPayment :one
-SELECT payment_id, invoice_id, method, gateway_ref, status FROM app.payments WHERE payment_id = $1
+SELECT payment_id, invoice_id, method, gateway_ref, status FROM app.payments WHERE payment_id = $1::uuid
 `
 
-func (q *Queries) GetPayment(ctx context.Context, paymentID int64) (AppPayment, error) {
+func (q *Queries) GetPayment(ctx context.Context, paymentID uuid.UUID) (AppPayment, error) {
 	row := q.db.QueryRowContext(ctx, getPayment, paymentID)
 	var i AppPayment
 	err := row.Scan(
@@ -102,26 +104,26 @@ func (q *Queries) ListPayments(ctx context.Context) ([]AppPayment, error) {
 
 const updatePayment = `-- name: UpdatePayment :one
 UPDATE app.payments
-SET invoice_id = $2, method = $3, gateway_ref = $4::app.payment_status, status = $5::app.payment_status
-WHERE payment_id = $1
+SET invoice_id = $1, method = $2, gateway_ref = $3, status = $4::app.payment_status
+WHERE payment_id = $5::uuid
 RETURNING payment_id, invoice_id, method, gateway_ref, status
 `
 
 type UpdatePaymentParams struct {
-	PaymentID int64            `db:"payment_id" json:"paymentId"`
-	InvoiceID int64            `db:"invoice_id" json:"invoiceId"`
-	Method    sql.NullString   `db:"method" json:"method"`
-	Column4   AppPaymentStatus `db:"column_4" json:"column4"`
-	Column5   AppPaymentStatus `db:"column_5" json:"column5"`
+	InvoiceID  uuid.UUID        `db:"invoice_id" json:"invoiceId"`
+	Method     sql.NullString   `db:"method" json:"method"`
+	GatewayRef sql.NullString   `db:"gateway_ref" json:"gatewayRef"`
+	Status     AppPaymentStatus `db:"status" json:"status"`
+	PaymentID  uuid.UUID        `db:"payment_id" json:"paymentId"`
 }
 
 func (q *Queries) UpdatePayment(ctx context.Context, arg UpdatePaymentParams) (AppPayment, error) {
 	row := q.db.QueryRowContext(ctx, updatePayment,
-		arg.PaymentID,
 		arg.InvoiceID,
 		arg.Method,
-		arg.Column4,
-		arg.Column5,
+		arg.GatewayRef,
+		arg.Status,
+		arg.PaymentID,
 	)
 	var i AppPayment
 	err := row.Scan(

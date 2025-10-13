@@ -62,7 +62,7 @@ const deleteContact = `-- name: DeleteContact :exec
 DELETE FROM app.contacts WHERE contact_id = $1
 `
 
-func (q *Queries) DeleteContact(ctx context.Context, contactID int64) error {
+func (q *Queries) DeleteContact(ctx context.Context, contactID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteContact, contactID)
 	return err
 }
@@ -107,20 +107,19 @@ func (q *Queries) ListContactsByCustomer(ctx context.Context, customerID uuid.UU
 
 const updateContact = `-- name: UpdateContact :one
 UPDATE app.contacts
-SET first_name = $2,
-    last_name = $3,
-    email = $4,
-    phone_mobile = $5,
-    phone_home = $6,
-    phone_work = $7,
-    role = $8,
-    is_primary = $9
-WHERE contact_id = $1
+SET first_name = $1,
+    last_name = $2,
+    email = $3,
+    phone_mobile = $4,
+    phone_home = $5,
+    phone_work = $6,
+    role = $7,
+    is_primary = $8
+WHERE contact_id = $9
 RETURNING contact_id, customer_id, first_name, last_name, email, phone_mobile, phone_home, phone_work, role, is_primary
 `
 
 type UpdateContactParams struct {
-	ContactID   int64          `db:"contact_id" json:"contactId"`
 	FirstName   sql.NullString `db:"first_name" json:"firstName"`
 	LastName    sql.NullString `db:"last_name" json:"lastName"`
 	Email       sql.NullString `db:"email" json:"email"`
@@ -129,11 +128,11 @@ type UpdateContactParams struct {
 	PhoneWork   sql.NullString `db:"phone_work" json:"phoneWork"`
 	Role        sql.NullString `db:"role" json:"role"`
 	IsPrimary   sql.NullBool   `db:"is_primary" json:"isPrimary"`
+	ContactID   uuid.UUID      `db:"contact_id" json:"contactId"`
 }
 
 func (q *Queries) UpdateContact(ctx context.Context, arg UpdateContactParams) (AppContact, error) {
 	row := q.db.QueryRowContext(ctx, updateContact,
-		arg.ContactID,
 		arg.FirstName,
 		arg.LastName,
 		arg.Email,
@@ -142,6 +141,7 @@ func (q *Queries) UpdateContact(ctx context.Context, arg UpdateContactParams) (A
 		arg.PhoneWork,
 		arg.Role,
 		arg.IsPrimary,
+		arg.ContactID,
 	)
 	var i AppContact
 	err := row.Scan(

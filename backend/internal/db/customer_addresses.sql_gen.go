@@ -62,10 +62,10 @@ func (q *Queries) CreateAddress(ctx context.Context, arg CreateAddressParams) (A
 }
 
 const deleteAddress = `-- name: DeleteAddress :exec
-DELETE FROM app.customer_addresses WHERE address_id = $1
+DELETE FROM app.customer_addresses WHERE address_id = $1::uuid
 `
 
-func (q *Queries) DeleteAddress(ctx context.Context, addressID int64) error {
+func (q *Queries) DeleteAddress(ctx context.Context, addressID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteAddress, addressID)
 	return err
 }
@@ -111,21 +111,20 @@ func (q *Queries) ListAddressesByCustomer(ctx context.Context, customerID uuid.U
 
 const updateAddress = `-- name: UpdateAddress :one
 UPDATE app.customer_addresses
-SET type = $2,
-    line1 = $3,
-    suburb = $4,
-    city = $5,
-    state = $6,
-    postcode = $7,
-    country = $8,
-    latitude = $9,
-    longitude = $10
-WHERE address_id = $1
+SET type = $1,
+    line1 = $2,
+    suburb = $3,
+    city = $4,
+    state = $5,
+    postcode = $6,
+    country = $7,
+    latitude = $8,
+    longitude = $9
+WHERE address_id = $10::uuid
 RETURNING address_id, customer_id, type, line1, suburb, city, state, postcode, country, latitude, longitude
 `
 
 type UpdateAddressParams struct {
-	AddressID int64          `db:"address_id" json:"addressId"`
 	Type      string         `db:"type" json:"type"`
 	Line1     sql.NullString `db:"line1" json:"line1"`
 	Suburb    sql.NullString `db:"suburb" json:"suburb"`
@@ -135,11 +134,11 @@ type UpdateAddressParams struct {
 	Country   sql.NullString `db:"country" json:"country"`
 	Latitude  sql.NullString `db:"latitude" json:"latitude"`
 	Longitude sql.NullString `db:"longitude" json:"longitude"`
+	AddressID uuid.UUID      `db:"address_id" json:"addressId"`
 }
 
 func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) (AppCustomerAddress, error) {
 	row := q.db.QueryRowContext(ctx, updateAddress,
-		arg.AddressID,
 		arg.Type,
 		arg.Line1,
 		arg.Suburb,
@@ -149,6 +148,7 @@ func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) (A
 		arg.Country,
 		arg.Latitude,
 		arg.Longitude,
+		arg.AddressID,
 	)
 	var i AppCustomerAddress
 	err := row.Scan(

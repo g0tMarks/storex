@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS app.customers (
 -- Contacts
 CREATE TABLE IF NOT EXISTS app.contacts (
 
-    contact_id BIGSERIAL PRIMARY KEY,
+    contact_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 
@@ -57,7 +57,7 @@ CREATE INDEX IF NOT EXISTS idx_contacts_customer_id ON app.contacts(customer_id)
 -- Customer addresses
 CREATE TABLE IF NOT EXISTS app.customer_addresses (
 
-    address_id BIGSERIAL PRIMARY KEY,
+    address_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 
@@ -84,7 +84,7 @@ CREATE INDEX IF NOT EXISTS idx_addresses_customer_id ON app.customer_addresses(c
 -- Customer access (PINs, timezones)
 CREATE TABLE IF NOT EXISTS app.customer_access (
 
-    access_id BIGSERIAL PRIMARY KEY,
+    access_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 
@@ -99,7 +99,7 @@ CREATE INDEX IF NOT EXISTS idx_access_customer_id ON app.customer_access(custome
 -- Custom fields (flexible key/value)
 CREATE TABLE IF NOT EXISTS app.customer_custom_fields (
 
-    field_id BIGSERIAL PRIMARY KEY,
+    field_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 
@@ -116,7 +116,7 @@ CREATE INDEX IF NOT EXISTS idx_custom_fields_customer_id ON app.customer_custom_
 -- Facilities
 CREATE TABLE IF NOT EXISTS app.facilities (
 
-    facility_id BIGSERIAL PRIMARY KEY,
+    facility_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     name TEXT NOT NULL,
 
@@ -130,9 +130,9 @@ CREATE TABLE IF NOT EXISTS app.facilities (
 -- Units
 CREATE TABLE IF NOT EXISTS app.units (
 
-    unit_id BIGSERIAL PRIMARY KEY,
+    unit_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
-    facility_id BIGINT NOT NULL REFERENCES app.facilities(facility_id) ON DELETE CASCADE,
+    facility_id UUID NOT NULL REFERENCES app.facilities(facility_id) ON DELETE CASCADE,
 
     unit_type TEXT,
 
@@ -147,11 +147,11 @@ CREATE INDEX IF NOT EXISTS idx_units_facility_id ON app.units(facility_id);
 -- Agreements
 CREATE TABLE IF NOT EXISTS app.agreements (
 
-    agreement_id BIGSERIAL PRIMARY KEY,
+    agreement_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 
-    unit_id BIGINT NOT NULL REFERENCES app.units(unit_id) ON DELETE CASCADE,
+    unit_id UUID NOT NULL REFERENCES app.units(unit_id) ON DELETE CASCADE,
 
     start_date DATE NOT NULL,
 
@@ -171,9 +171,9 @@ CREATE INDEX IF NOT EXISTS idx_agreements_unit_id ON app.agreements(unit_id);
 -- Invoices
 CREATE TABLE IF NOT EXISTS app.invoices (
 
-    invoice_id BIGSERIAL PRIMARY KEY,
+    invoice_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
-    agreement_id BIGINT NOT NULL REFERENCES app.agreements(agreement_id) ON DELETE CASCADE,
+    agreement_id UUID NOT NULL REFERENCES app.agreements(agreement_id) ON DELETE CASCADE,
 
     due_date DATE NOT NULL,
 
@@ -186,9 +186,9 @@ CREATE INDEX IF NOT EXISTS idx_invoices_agreement_id ON app.invoices(agreement_i
 -- Payments
 CREATE TABLE IF NOT EXISTS app.payments (
 
-    payment_id BIGSERIAL PRIMARY KEY,
+    payment_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
-    invoice_id BIGINT NOT NULL REFERENCES app.invoices(invoice_id) ON DELETE CASCADE,
+    invoice_id UUID NOT NULL REFERENCES app.invoices(invoice_id) ON DELETE CASCADE,
 
     method TEXT,
 
@@ -202,11 +202,11 @@ CREATE INDEX IF NOT EXISTS idx_payments_invoice_id ON app.payments(invoice_id);
 -- Access logs (partitioning candidate)
 CREATE TABLE IF NOT EXISTS app.access_logs (
 
-    log_id BIGSERIAL PRIMARY KEY,
+    log_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE SET NULL,
 
-    unit_id BIGINT NOT NULL REFERENCES app.units(unit_id) ON DELETE SET NULL,
+    unit_id UUID NOT NULL REFERENCES app.units(unit_id) ON DELETE SET NULL,
 
     datetime TIMESTAMP NOT NULL DEFAULT now(),
 
@@ -231,7 +231,7 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE TABLE IF NOT EXISTS app.messages (
 
-    message_id BIGSERIAL PRIMARY KEY,
+    message_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     customer_id UUID NOT NULL REFERENCES app.customers(customer_id) ON DELETE CASCADE,
 

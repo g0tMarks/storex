@@ -320,24 +320,24 @@ func (ns NullAppUnitStatus) Value() (driver.Value, error) {
 }
 
 type AppAccessLog struct {
-	LogID      int64          `db:"log_id" json:"logId"`
+	LogID      uuid.UUID      `db:"log_id" json:"logId"`
 	CustomerID uuid.UUID      `db:"customer_id" json:"customerId"`
-	UnitID     int64          `db:"unit_id" json:"unitId"`
+	UnitID     uuid.UUID      `db:"unit_id" json:"unitId"`
 	Datetime   time.Time      `db:"datetime" json:"datetime"`
 	Action     sql.NullString `db:"action" json:"action"`
 }
 
 type AppAgreement struct {
-	AgreementID int64                  `db:"agreement_id" json:"agreementId"`
+	AgreementID uuid.UUID              `db:"agreement_id" json:"agreementId"`
 	CustomerID  uuid.UUID              `db:"customer_id" json:"customerId"`
-	UnitID      int64                  `db:"unit_id" json:"unitId"`
+	UnitID      uuid.UUID              `db:"unit_id" json:"unitId"`
 	StartDate   time.Time              `db:"start_date" json:"startDate"`
 	EndDate     sql.NullTime           `db:"end_date" json:"endDate"`
 	Status      NullAppAgreementStatus `db:"status" json:"status"`
 }
 
 type AppContact struct {
-	ContactID   int64          `db:"contact_id" json:"contactId"`
+	ContactID   uuid.UUID      `db:"contact_id" json:"contactId"`
 	CustomerID  uuid.UUID      `db:"customer_id" json:"customerId"`
 	FirstName   sql.NullString `db:"first_name" json:"firstName"`
 	LastName    sql.NullString `db:"last_name" json:"lastName"`
@@ -357,7 +357,7 @@ type AppCustomer struct {
 }
 
 type AppCustomerAccess struct {
-	AccessID      int64          `db:"access_id" json:"accessId"`
+	AccessID      uuid.UUID      `db:"access_id" json:"accessId"`
 	CustomerID    uuid.UUID      `db:"customer_id" json:"customerId"`
 	Pin           sql.NullString `db:"pin" json:"pin"`
 	AlwaysAllowed sql.NullBool   `db:"always_allowed" json:"alwaysAllowed"`
@@ -365,7 +365,7 @@ type AppCustomerAccess struct {
 }
 
 type AppCustomerAddress struct {
-	AddressID  int64          `db:"address_id" json:"addressId"`
+	AddressID  uuid.UUID      `db:"address_id" json:"addressId"`
 	CustomerID uuid.UUID      `db:"customer_id" json:"customerId"`
 	Type       string         `db:"type" json:"type"`
 	Line1      sql.NullString `db:"line1" json:"line1"`
@@ -379,14 +379,14 @@ type AppCustomerAddress struct {
 }
 
 type AppCustomerCustomField struct {
-	FieldID    int64          `db:"field_id" json:"fieldId"`
+	FieldID    uuid.UUID      `db:"field_id" json:"fieldId"`
 	CustomerID uuid.UUID      `db:"customer_id" json:"customerId"`
 	FieldName  string         `db:"field_name" json:"fieldName"`
 	FieldValue sql.NullString `db:"field_value" json:"fieldValue"`
 }
 
 type AppFacility struct {
-	FacilityID int64           `db:"facility_id" json:"facilityId"`
+	FacilityID uuid.UUID       `db:"facility_id" json:"facilityId"`
 	Name       string          `db:"name" json:"name"`
 	Address    sql.NullString  `db:"address" json:"address"`
 	Region     sql.NullString  `db:"region" json:"region"`
@@ -394,15 +394,15 @@ type AppFacility struct {
 }
 
 type AppInvoice struct {
-	InvoiceID   int64                `db:"invoice_id" json:"invoiceId"`
-	AgreementID int64                `db:"agreement_id" json:"agreementId"`
+	InvoiceID   uuid.UUID            `db:"invoice_id" json:"invoiceId"`
+	AgreementID uuid.UUID            `db:"agreement_id" json:"agreementId"`
 	DueDate     time.Time            `db:"due_date" json:"dueDate"`
 	Amount      string               `db:"amount" json:"amount"`
 	Status      NullAppInvoiceStatus `db:"status" json:"status"`
 }
 
 type AppMessage struct {
-	MessageID  int64                   `db:"message_id" json:"messageId"`
+	MessageID  uuid.UUID               `db:"message_id" json:"messageId"`
 	CustomerID uuid.UUID               `db:"customer_id" json:"customerId"`
 	Type       NullAppMessageType      `db:"type" json:"type"`
 	Direction  NullAppMessageDirection `db:"direction" json:"direction"`
@@ -410,16 +410,16 @@ type AppMessage struct {
 }
 
 type AppPayment struct {
-	PaymentID  int64                `db:"payment_id" json:"paymentId"`
-	InvoiceID  int64                `db:"invoice_id" json:"invoiceId"`
+	PaymentID  uuid.UUID            `db:"payment_id" json:"paymentId"`
+	InvoiceID  uuid.UUID            `db:"invoice_id" json:"invoiceId"`
 	Method     sql.NullString       `db:"method" json:"method"`
 	GatewayRef sql.NullString       `db:"gateway_ref" json:"gatewayRef"`
 	Status     NullAppPaymentStatus `db:"status" json:"status"`
 }
 
 type AppUnit struct {
-	UnitID     int64             `db:"unit_id" json:"unitId"`
-	FacilityID int64             `db:"facility_id" json:"facilityId"`
+	UnitID     uuid.UUID         `db:"unit_id" json:"unitId"`
+	FacilityID uuid.UUID         `db:"facility_id" json:"facilityId"`
 	UnitType   sql.NullString    `db:"unit_type" json:"unitType"`
 	Size       sql.NullString    `db:"size" json:"size"`
 	Price      sql.NullString    `db:"price" json:"price"`

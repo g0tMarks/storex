@@ -37,10 +37,10 @@ func (q *Queries) CreateCustomField(ctx context.Context, arg CreateCustomFieldPa
 }
 
 const deleteCustomField = `-- name: DeleteCustomField :exec
-DELETE FROM app.customer_custom_fields WHERE field_id = $1
+DELETE FROM app.customer_custom_fields WHERE field_id = $1::uuid
 `
 
-func (q *Queries) DeleteCustomField(ctx context.Context, fieldID int64) error {
+func (q *Queries) DeleteCustomField(ctx context.Context, fieldID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteCustomField, fieldID)
 	return err
 }
@@ -79,20 +79,20 @@ func (q *Queries) ListCustomFieldsByCustomer(ctx context.Context, customerID uui
 
 const updateCustomField = `-- name: UpdateCustomField :one
 UPDATE app.customer_custom_fields
-SET field_name = $2,
-    field_value = $3
-WHERE field_id = $1
+SET field_name = $1,
+    field_value = $2
+WHERE field_id = $3::uuid
 RETURNING field_id, customer_id, field_name, field_value
 `
 
 type UpdateCustomFieldParams struct {
-	FieldID    int64          `db:"field_id" json:"fieldId"`
 	FieldName  string         `db:"field_name" json:"fieldName"`
 	FieldValue sql.NullString `db:"field_value" json:"fieldValue"`
+	FieldID    uuid.UUID      `db:"field_id" json:"fieldId"`
 }
 
 func (q *Queries) UpdateCustomField(ctx context.Context, arg UpdateCustomFieldParams) (AppCustomerCustomField, error) {
-	row := q.db.QueryRowContext(ctx, updateCustomField, arg.FieldID, arg.FieldName, arg.FieldValue)
+	row := q.db.QueryRowContext(ctx, updateCustomField, arg.FieldName, arg.FieldValue, arg.FieldID)
 	var i AppCustomerCustomField
 	err := row.Scan(
 		&i.FieldID,

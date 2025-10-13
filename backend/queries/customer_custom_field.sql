@@ -1,17 +1,17 @@
 -- name: ListCustomFieldsByCustomer :many
-SELECT * FROM app.customer_custom_fields WHERE customer_id = $1;
+SELECT * FROM app.customer_custom_fields WHERE customer_id = @customer_id;
 
 -- name: CreateCustomField :one
 INSERT INTO app.customer_custom_fields (customer_id, field_name, field_value)
-VALUES ($1, $2, $3)
+VALUES (@customer_id, @field_name, @field_value)
 RETURNING *;
 
 -- name: UpdateCustomField :one
 UPDATE app.customer_custom_fields
-SET field_name = $2,
-    field_value = $3
-WHERE field_id = $1
+SET field_name = @field_name,
+    field_value = @field_value
+WHERE field_id = @field_id::uuid
 RETURNING *;
 
 -- name: DeleteCustomField :exec
-DELETE FROM app.customer_custom_fields WHERE field_id = $1;
+DELETE FROM app.customer_custom_fields WHERE field_id = @field_id::uuid;

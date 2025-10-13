@@ -44,10 +44,10 @@ func (q *Queries) CreateAccess(ctx context.Context, arg CreateAccessParams) (App
 }
 
 const deleteAccess = `-- name: DeleteAccess :exec
-DELETE FROM app.customer_access WHERE access_id = $1
+DELETE FROM app.customer_access WHERE access_id = $1::uuid
 `
 
-func (q *Queries) DeleteAccess(ctx context.Context, accessID int64) error {
+func (q *Queries) DeleteAccess(ctx context.Context, accessID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteAccess, accessID)
 	return err
 }
@@ -71,26 +71,26 @@ func (q *Queries) GetAccessByCustomer(ctx context.Context, customerID uuid.UUID)
 
 const updateAccess = `-- name: UpdateAccess :one
 UPDATE app.customer_access
-SET pin = $2,
-    always_allowed = $3,
-    time_zone = $4
-WHERE access_id = $1
+SET pin = $1,
+    always_allowed = $2,
+    time_zone = $3
+WHERE access_id = $4::uuid
 RETURNING access_id, customer_id, pin, always_allowed, time_zone
 `
 
 type UpdateAccessParams struct {
-	AccessID      int64          `db:"access_id" json:"accessId"`
 	Pin           sql.NullString `db:"pin" json:"pin"`
 	AlwaysAllowed sql.NullBool   `db:"always_allowed" json:"alwaysAllowed"`
 	TimeZone      sql.NullString `db:"time_zone" json:"timeZone"`
+	AccessID      uuid.UUID      `db:"access_id" json:"accessId"`
 }
 
 func (q *Queries) UpdateAccess(ctx context.Context, arg UpdateAccessParams) (AppCustomerAccess, error) {
 	row := q.db.QueryRowContext(ctx, updateAccess,
-		arg.AccessID,
 		arg.Pin,
 		arg.AlwaysAllowed,
 		arg.TimeZone,
+		arg.AccessID,
 	)
 	var i AppCustomerAccess
 	err := row.Scan(

@@ -6,7 +6,7 @@ ORDER BY name;
 -- name: GetFacility :one
 SELECT * 
 FROM app.facilities 
-WHERE facility_id = $1;
+WHERE facility_id = @facility_id::uuid;
 
 -- name: CreateFacility :one
 INSERT INTO app.facilities (
@@ -15,6 +15,6 @@ INSERT INTO app.facilities (
     region,
     config
 ) VALUES (
-    $1, $2, $3, $4
+    @name, @address, @region, @config
 )
 RETURNING *;

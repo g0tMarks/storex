@@ -19,17 +19,17 @@ RETURNING message_id, customer_id, type, direction, status
 
 type CreateMessageParams struct {
 	CustomerID uuid.UUID           `db:"customer_id" json:"customerId"`
-	Column2    AppMessageType      `db:"column_2" json:"column2"`
-	Column3    AppMessageDirection `db:"column_3" json:"column3"`
-	Column4    AppMessageStatus    `db:"column_4" json:"column4"`
+	Type       AppMessageType      `db:"type" json:"type"`
+	Direction  AppMessageDirection `db:"direction" json:"direction"`
+	Status     AppMessageStatus    `db:"status" json:"status"`
 }
 
 func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (AppMessage, error) {
 	row := q.db.QueryRowContext(ctx, createMessage,
 		arg.CustomerID,
-		arg.Column2,
-		arg.Column3,
-		arg.Column4,
+		arg.Type,
+		arg.Direction,
+		arg.Status,
 	)
 	var i AppMessage
 	err := row.Scan(
@@ -43,10 +43,10 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (A
 }
 
 const deleteMessage = `-- name: DeleteMessage :exec
-DELETE FROM app.messages WHERE message_id = $1
+DELETE FROM app.messages WHERE message_id = $1::uuid
 `
 
-func (q *Queries) DeleteMessage(ctx context.Context, messageID int64) error {
+func (q *Queries) DeleteMessage(ctx context.Context, messageID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteMessage, messageID)
 	return err
 }
@@ -119,24 +119,24 @@ func (q *Queries) ListMessages(ctx context.Context) ([]AppMessage, error) {
 
 const updateMessage = `-- name: UpdateMessage :one
 UPDATE app.messages
-SET type = $2::app.message_type, direction = $3::app.message_direction, status = $4::app.message_status
-WHERE message_id = $1
+SET type = $1::app.message_type, direction = $2::app.message_direction, status = $3::app.message_status
+WHERE message_id = $4::uuid
 RETURNING message_id, customer_id, type, direction, status
 `
 
 type UpdateMessageParams struct {
-	MessageID int64               `db:"message_id" json:"messageId"`
-	Column2   AppMessageType      `db:"column_2" json:"column2"`
-	Column3   AppMessageDirection `db:"column_3" json:"column3"`
-	Column4   AppMessageStatus    `db:"column_4" json:"column4"`
+	Type      AppMessageType      `db:"type" json:"type"`
+	Direction AppMessageDirection `db:"direction" json:"direction"`
+	Status    AppMessageStatus    `db:"status" json:"status"`
+	MessageID uuid.UUID           `db:"message_id" json:"messageId"`
 }
 
 func (q *Queries) UpdateMessage(ctx context.Context, arg UpdateMessageParams) (AppMessage, error) {
 	row := q.db.QueryRowContext(ctx, updateMessage,
+		arg.Type,
+		arg.Direction,
+		arg.Status,
 		arg.MessageID,
-		arg.Column2,
-		arg.Column3,
-		arg.Column4,
 	)
 	var i AppMessage
 	err := row.Scan(

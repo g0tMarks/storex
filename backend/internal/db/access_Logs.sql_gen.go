@@ -21,7 +21,7 @@ RETURNING log_id, customer_id, unit_id, datetime, action
 
 type CreateAccessLogParams struct {
 	CustomerID uuid.UUID      `db:"customer_id" json:"customerId"`
-	UnitID     int64          `db:"unit_id" json:"unitId"`
+	UnitID     uuid.UUID      `db:"unit_id" json:"unitId"`
 	Datetime   time.Time      `db:"datetime" json:"datetime"`
 	Action     sql.NullString `db:"action" json:"action"`
 }
@@ -45,10 +45,10 @@ func (q *Queries) CreateAccessLog(ctx context.Context, arg CreateAccessLogParams
 }
 
 const deleteAccessLog = `-- name: DeleteAccessLog :exec
-DELETE FROM app.access_logs WHERE log_id = $1
+DELETE FROM app.access_logs WHERE log_id = $1::uuid
 `
 
-func (q *Queries) DeleteAccessLog(ctx context.Context, logID int64) error {
+func (q *Queries) DeleteAccessLog(ctx context.Context, logID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteAccessLog, logID)
 	return err
 }
@@ -90,7 +90,7 @@ const getAccessLogsByUnit = `-- name: GetAccessLogsByUnit :many
 SELECT log_id, customer_id, unit_id, datetime, action FROM app.access_logs WHERE unit_id = $1 ORDER BY datetime DESC
 `
 
-func (q *Queries) GetAccessLogsByUnit(ctx context.Context, unitID int64) ([]AppAccessLog, error) {
+func (q *Queries) GetAccessLogsByUnit(ctx context.Context, unitID uuid.UUID) ([]AppAccessLog, error) {
 	rows, err := q.db.QueryContext(ctx, getAccessLogsByUnit, unitID)
 	if err != nil {
 		return nil, err

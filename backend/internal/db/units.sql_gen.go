@@ -8,6 +8,8 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createUnit = `-- name: CreateUnit :one
@@ -17,7 +19,7 @@ RETURNING unit_id, facility_id, unit_type, size, price, status
 `
 
 type CreateUnitParams struct {
-	FacilityID int64          `db:"facility_id" json:"facilityId"`
+	FacilityID uuid.UUID      `db:"facility_id" json:"facilityId"`
 	UnitType   sql.NullString `db:"unit_type" json:"unitType"`
 	Size       sql.NullString `db:"size" json:"size"`
 	Price      sql.NullString `db:"price" json:"price"`
@@ -45,10 +47,10 @@ func (q *Queries) CreateUnit(ctx context.Context, arg CreateUnitParams) (AppUnit
 }
 
 const deleteUnit = `-- name: DeleteUnit :exec
-DELETE FROM app.units WHERE unit_id = $1
+DELETE FROM app.units WHERE unit_id = $1::uuid
 `
 
-func (q *Queries) DeleteUnit(ctx context.Context, unitID int64) error {
+func (q *Queries) DeleteUnit(ctx context.Context, unitID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteUnit, unitID)
 	return err
 }
@@ -56,10 +58,10 @@ func (q *Queries) DeleteUnit(ctx context.Context, unitID int64) error {
 const getUnit = `-- name: GetUnit :one
 SELECT unit_id, facility_id, unit_type, size, price, status 
 FROM app.units 
-WHERE unit_id = $1
+WHERE unit_id = $1::uuid
 `
 
-func (q *Queries) GetUnit(ctx context.Context, unitID int64) (AppUnit, error) {
+func (q *Queries) GetUnit(ctx context.Context, unitID uuid.UUID) (AppUnit, error) {
 	row := q.db.QueryRowContext(ctx, getUnit, unitID)
 	var i AppUnit
 	err := row.Scan(
@@ -112,11 +114,11 @@ func (q *Queries) ListUnits(ctx context.Context) ([]AppUnit, error) {
 const listUnitsByFacility = `-- name: ListUnitsByFacility :many
 SELECT unit_id, facility_id, unit_type, size, price, status 
 FROM app.units
-WHERE facility_id = $1
+WHERE facility_id = $1::uuid
 ORDER BY unit_id
 `
 
-func (q *Queries) ListUnitsByFacility(ctx context.Context, facilityID int64) ([]AppUnit, error) {
+func (q *Queries) ListUnitsByFacility(ctx context.Context, facilityID uuid.UUID) ([]AppUnit, error) {
 	rows, err := q.db.QueryContext(ctx, listUnitsByFacility, facilityID)
 	if err != nil {
 		return nil, err
@@ -149,17 +151,17 @@ func (q *Queries) ListUnitsByFacility(ctx context.Context, facilityID int64) ([]
 const updateUnit = `-- name: UpdateUnit :one
 UPDATE app.units
 SET facility_id = $1, unit_type = $2, size = $3, price = $4, status = $5::app.unit_status
-WHERE unit_id = $6
+WHERE unit_id = $6::uuid
 RETURNING unit_id, facility_id, unit_type, size, price, status
 `
 
 type UpdateUnitParams struct {
-	FacilityID int64          `db:"facility_id" json:"facilityId"`
+	FacilityID uuid.UUID      `db:"facility_id" json:"facilityId"`
 	UnitType   sql.NullString `db:"unit_type" json:"unitType"`
 	Size       sql.NullString `db:"size" json:"size"`
 	Price      sql.NullString `db:"price" json:"price"`
 	Status     AppUnitStatus  `db:"status" json:"status"`
-	UnitID     int64          `db:"unit_id" json:"unitId"`
+	UnitID     uuid.UUID      `db:"unit_id" json:"unitId"`
 }
 
 func (q *Queries) UpdateUnit(ctx context.Context, arg UpdateUnitParams) (AppUnit, error) {

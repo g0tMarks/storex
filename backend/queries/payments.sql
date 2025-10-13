@@ -2,18 +2,18 @@
 SELECT * FROM app.payments ORDER BY payment_id DESC;
 
 -- name: GetPayment :one
-SELECT * FROM app.payments WHERE payment_id = $1;
+SELECT * FROM app.payments WHERE payment_id = @payment_id::uuid;
 
 -- name: CreatePayment :one
 INSERT INTO app.payments (invoice_id, method, gateway_ref, status)
-VALUES ($1, $2, $3, $4::app.payment_status)
+VALUES (@invoice_id, @method, @gateway_ref, @status::app.payment_status)
 RETURNING *;
 
 -- name: UpdatePayment :one
 UPDATE app.payments
-SET invoice_id = $2, method = $3, gateway_ref = $4::app.payment_status, status = $5::app.payment_status
-WHERE payment_id = $1
+SET invoice_id = @invoice_id, method = @method, gateway_ref = @gateway_ref, status = @status::app.payment_status
+WHERE payment_id = @payment_id::uuid
 RETURNING *;
 
 -- name: DeletePayment :exec
-DELETE FROM app.payments WHERE payment_id = $1;
+DELETE FROM app.payments WHERE payment_id = @payment_id::uuid;
