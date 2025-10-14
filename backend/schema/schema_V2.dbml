@@ -1,0 +1,119 @@
+Project storex {
+  database_type: "PostgreSQL"
+  note: 'Updated from backend/schema/schema.sql using V1 format'
+}
+
+//// ==============================
+// Core Schema
+//// ==============================
+
+Table app.customers {
+  customer_id uuid [pk, default: `uuid_generate_v4()`]
+  customer_name text [not null]
+  created_at timestamp [not null, default: `now()`]
+  is_enabled boolean [not null, default: true]
+}
+
+Table app.contacts {
+  contact_id uuid [pk, default: `uuid_generate_v4()`]
+  customer_id uuid [not null, ref: > app.customers.customer_id]
+  first_name text
+  last_name text
+  email text [unique]
+  phone_mobile text
+  phone_home text
+  phone_work text
+  role text
+  is_primary boolean [default: false]
+}
+
+Table app.customer_addresses {
+  address_id uuid [pk, default: `uuid_generate_v4()`]
+  customer_id uuid [not null, ref: > app.customers.customer_id]
+  type text [not null] // billing, street
+  line1 text
+  suburb text
+  city text
+  state text
+  postcode text
+  country text
+  latitude numeric
+  longitude numeric
+}
+
+Table app.customer_access {
+  access_id uuid [pk, default: `uuid_generate_v4()`]
+  customer_id uuid [not null, ref: > app.customers.customer_id]
+  pin text
+  always_allowed boolean [default: false]
+  time_zone text
+}
+
+Table app.customer_custom_fields {
+  field_id uuid [pk, default: `uuid_generate_v4()`]
+  customer_id uuid [not null, ref: > app.customers.customer_id]
+  field_name text [not null]
+  field_value text
+}
+
+//// ==============================
+// Operational Tables
+//// ==============================
+
+Table app.facilities {
+  facility_id uuid [pk, default: `uuid_generate_v4()`]
+  name text [not null]
+  address text
+  region text
+  config jsonb [not null]
+}
+
+Table app.units {
+  unit_id uuid [pk, default: `uuid_generate_v4()`]
+  facility_id uuid [not null, ref: > app.facilities.facility_id]
+  unit_type text
+  size text
+  price numeric(10,2)
+  status text [default: 'available']
+}
+
+Table app.agreements {
+  agreement_id uuid [pk, default: `uuid_generate_v4()`]
+  customer_id uuid [not null, ref: > app.customers.customer_id]
+  unit_id uuid [not null, ref: > app.units.unit_id]
+  start_date date [not null]
+  end_date date
+  status text [default: 'active']
+}
+
+Table app.invoices {
+  invoice_id uuid [pk, default: `uuid_generate_v4()`]
+  agreement_id uuid [not null, ref: > app.agreements.agreement_id]
+  due_date date [not null]
+  amount numeric(10,2) [not null]
+  status text [default: 'unpaid']
+}
+
+Table app.payments {
+  payment_id uuid [pk, default: `uuid_generate_v4()`]
+  invoice_id uuid [not null, ref: > app.invoices.invoice_id]
+  method text
+  gateway_ref text
+  status text [default: 'pending']
+}
+
+Table app.access_logs {
+  log_id uuid [pk, default: `uuid_generate_v4()`]
+  customer_id uuid [not null, ref: > app.customers.customer_id]
+  unit_id uuid [not null, ref: > app.units.unit_id]
+  datetime timestamp [not null, default: `now()`]
+  action text
+}
+
+Table app.messages {
+  message_id uuid [pk, default: `uuid_generate_v4()`]
+  customer_id uuid [not null, ref: > app.customers.customer_id]
+  type text // sms, email, system
+  direction text // inbound, outbound
+  status text [default: 'queued']
+}

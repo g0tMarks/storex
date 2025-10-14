@@ -10,6 +10,7 @@ import (
 
 	// Requires a fully qualified module path
 	"github.com/g0tMarks/storex.git/backend/internal/db"
+	"github.com/g0tMarks/storex.git/backend/internal/logger"
 	_ "github.com/google/uuid"
 	"github.com/joho/godotenv"
 
@@ -18,6 +19,12 @@ import (
 )
 
 func main() {
+	//Logging config
+	os.Setenv("APPENV", "development")
+
+	logger.Log.Info("Starting demo...")
+	logger.Log.Debug("Debugging active")
+
 	// Load .env file manually
 	// Adjust path as needed because by default it looks in the current working directory for .env
 	err := godotenv.Load("../../../.env")
