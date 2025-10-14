@@ -100,35 +100,46 @@ func main() {
 		log.Fatal("failed to create agreement:", err)
 	}
 	fmt.Printf("4. DONE! Created Agreement: %d status=%s\n", agreement.AgreementID, agreement.Status.AppAgreementStatus)
-	/*
-	   // 6 Record a payment
 
-	   	payment, err := queries.CreatePayment(ctx, db.CreatePaymentParams{
-	   		Method:     sql.NullString{String: "credit_card", Valid: true},
-	   		GatewayRef: sql.NullString{String: "TXN-12345", Valid: true},
-	   		Status:     db.PaymentStatusCompleted, // enum
-	   	})
+	// 5 Create an invoice first
+	invoice, err := queries.CreateInvoice(ctx, db.CreateInvoiceParams{
+		AgreementID: agreement.AgreementID,
+		DueDate:     time.Now().AddDate(0, 1, 0), // 1 month from now
+		Amount:      "120.00",                    // Monthly rent
+		Status:      db.AppInvoiceStatusUnpaid,
+	})
+	if err != nil {
+		log.Fatal("failed to create invoice:", err)
+	}
+	fmt.Printf("5. DONE! Created Invoice: %d amount=%s status=%s\n", invoice.InvoiceID, invoice.Amount, invoice.Status.AppInvoiceStatus)
 
-	   	if err != nil {
-	   		log.Fatal("failed to create payment:", err)
-	   	}
+	// 6 Record a payment for the invoice
+	payment, err := queries.CreatePayment(ctx, db.CreatePaymentParams{
+		InvoiceID:  invoice.InvoiceID, // Now we have a valid invoice_id
+		Method:     sql.NullString{String: "credit_card", Valid: true},
+		GatewayRef: sql.NullString{String: "TXN-12345", Valid: true},
+		Status:     db.AppPaymentStatusCompleted, // enum
+	})
 
-	   fmt.Printf("5. DONE! Created Payment: %d status=%s\n", payment.PaymentID, payment.Status)
+	if err != nil {
+		log.Fatal("failed to create payment:", err)
+	}
 
-	   	// 7 Log a message
+	fmt.Printf("6. DONE! Created Payment: %d status=%s\n", payment.PaymentID, payment.Status.AppPaymentStatus)
 
-	   		message, err := queries.CreateMessage(ctx, db.CreateMessageParams{
-	   			CustomerID: customer.CustomerID,
-	   			Type:       db.MessageTypeEmail,         // enum
-	   			Direction:  db.MessageDirectionOutbound, // enum
-	   			Status:     db.MessageStatusSent,        // enum
-	   		})
-	   		if err != nil {
-	   			log.Fatal("failed to create message:", err)
-	   		}
-	   		fmt.Printf("Message: %d type=%s status=%s\n", message.MessageID, message.Type, message.Status)
+	// 7 Log a message
 
-	   		// Done
-	   		fmt.Println("Full demo flow completed successfully.")
-	*/
+	message, err := queries.CreateMessage(ctx, db.CreateMessageParams{
+		CustomerID: customer.CustomerID,
+		Type:       db.AppMessageTypeEmail,         // enum
+		Direction:  db.AppMessageDirectionOutbound, // enum
+		Status:     db.AppMessageStatusSent,        // enum
+	})
+	if err != nil {
+		log.Fatal("failed to create message:", err)
+	}
+	fmt.Printf("7. DONE! Message: %d type=%s status=%s\n", message.MessageID, message.Type.AppMessageType, message.Status.AppMessageStatus)
+
+	// Done
+	fmt.Println("Full demo flow completed successfully.")
 }
