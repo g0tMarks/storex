@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS app.contacts (
 
     role TEXT,
 
-    is_primary BOOLEAN DEFAULT falseunit_id
+    is_primary BOOLEAN DEFAULT false
 );
 CREATE INDEX IF NOT EXISTS idx_contacts_customer_id ON app.contacts(customer_id);
 
