@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS app.customers (
     created_at TIMESTAMP NOT NULL DEFAULT now(),
 
     is_enabled BOOLEAN NOT NULL DEFAULT true
-);nd)
+);
 
 -- Contacts
 CREATE TABLE IF NOT EXISTS app.contacts (
