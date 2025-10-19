@@ -1,7 +1,6 @@
 package logger
 
-import (
-	"io"
+import (	"io"
 	"os"
 
 	"github.com/kataras/golog"

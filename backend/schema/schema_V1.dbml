@@ -1,0 +1,118 @@
+Project storex {
+  database_type: "PostgreSQL"
+}
+
+//// ==============================
+// Core Schema
+//// ==============================
+
+Table customers {
+  customer_id bigserial [pk]
+  customer_name text [not null]
+  created_at timestamp [not null, default: `now()`]
+  is_enabled boolean [not null, default: true]
+}
+
+Table contacts {
+  contact_id bigserial [pk]
+  customer_id bigint [not null, ref: > customers.customer_id]
+  first_name text
+  last_name text
+  email text
+  phone_mobile text
+  phone_home text
+  phone_work text
+  role text
+  is_primary boolean [default: false]
+}
+
+Table customer_addresses {
+  address_id bigserial [pk]
+  customer_id bigint [not null, ref: > customers.customer_id]
+  type text [not null] // billing, street
+  line1 text
+  suburb text
+  city text
+  state text
+  postcode text
+  country text
+  latitude numeric
+  longitude numeric
+}
+
+Table customer_access {
+  access_id bigserial [pk]
+  customer_id bigint [not null, ref: > customers.customer_id]
+  pin text
+  always_allowed boolean [default: false]
+  time_zone text
+}
+
+Table customer_custom_fields {
+  field_id bigserial [pk]
+  customer_id bigint [not null, ref: > customers.customer_id]
+  field_name text [not null]
+  field_value text
+}
+
+//// ==============================
+// Operational Tables
+//// ==============================
+
+Table facilities {
+  facility_id bigserial [pk]
+  name text [not null]
+  address text
+  region text
+  config jsonb [not null, default: `'{}'::jsonb`]
+}
+
+Table units {
+  unit_id bigserial [pk]
+  facility_id bigint [not null, ref: > facilities.facility_id]
+  unit_type text
+  size text
+  price numeric(10,2)
+  status text
+}
+
+Table agreements {
+  agreement_id bigserial [pk]
+  customer_id bigint [not null, ref: > customers.customer_id]
+  unit_id bigint [not null, ref: > units.unit_id]
+  start_date date [not null]
+  end_date date
+  status text
+}
+
+Table invoices {
+  invoice_id bigserial [pk]
+  agreement_id bigint [not null, ref: > agreements.agreement_id]
+  due_date date [not null]
+  amount numeric(10,2) [not null]
+  status text
+}
+
+Table payments {
+  payment_id bigserial [pk]
+  invoice_id bigint [not null, ref: > invoices.invoice_id]
+  method text
+  gateway_ref text
+  status text
+}
+
+Table access_logs {
+  log_id bigserial [pk]
+  customer_id bigint [not null, ref: > customers.customer_id]
+  unit_id bigint [not null, ref: > units.unit_id]
+  datetime timestamp [not null, default: `now()`]
+  action text
+}
+
+Table messages {
+  message_id bigserial [pk]
+  customer_id bigint [not null, ref: > customers.customer_id]
+  type text // SMS, Email
+  direction text // inbound, outbound
+  status text
+}
